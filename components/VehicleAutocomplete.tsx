@@ -54,7 +54,9 @@ export function VehicleAutocomplete({
   // Get unique brands
   const allBrands = useMemo(() => {
     const brandSet = new Set<string>();
-    boePrices.forEach((vehicle) => brandSet.add(vehicle.brand));
+    (boePrices as unknown as Vehicle[]).forEach((vehicle) =>
+      brandSet.add(vehicle.brand),
+    );
     return Array.from(brandSet).sort();
   }, []);
 
@@ -75,7 +77,7 @@ export function VehicleAutocomplete({
     const query = modelQuery.toLowerCase();
     const year = yearFilter ? parseInt(yearFilter) : null;
 
-    return boePrices
+    return (boePrices as unknown as Vehicle[])
       .filter((vehicle) => {
         // Brand match
         if (vehicle.brand !== selectedBrand) return false;
