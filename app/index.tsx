@@ -1,7 +1,17 @@
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { VehicleAutocomplete } from "@/components/VehicleAutocomplete";
 import { Colors } from "@/constants/Colors";
+import { useLanguage } from "@/context/LanguageContext";
 import { CarAge, Country } from "@/types";
 import { useRouter } from "expo-router";
-import { Euro, Gauge, GraduationCap, MapPin, User } from "lucide-react-native";
+import {
+  AlertCircle,
+  Euro,
+  Gauge,
+  GraduationCap,
+  MapPin,
+  User,
+} from "lucide-react-native";
 import React, { useState } from "react";
 import {
   Pressable,
@@ -19,18 +29,64 @@ import {
 
 export default function InputScreen() {
   const router = useRouter();
+  const { t } = useLanguage();
 
   // State
   const [originCountry, setOriginCountry] = useState<Country>("Germany");
-  const [price, setPrice] = useState("25000"); // Test Data
-  const [fiscalValue, setFiscalValue] = useState("42000"); // Test Data
-  const [co2, setCo2] = useState("135"); // Test Data
+  const [price, setPrice] = useState("");
+  const [fiscalValue, setFiscalValue] = useState("");
+  const [co2, setCo2] = useState("");
   const [age, setAge] = useState<CarAge>("3_years");
   const [sellerType, setSellerType] = useState<"dealer" | "private">("dealer");
+  const [isElectric, setIsElectric] = useState(false);
 
-  const isValid = price.length > 0 && co2.length > 0 && fiscalValue.length > 0;
+  // Validation state
+  const [touched, setTouched] = useState({
+    price: false,
+    co2: false,
+    fiscalValue: false,
+  });
+
+  // Validation helpers
+  const validatePrice = (value: string): string | null => {
+    const num = parseFloat(value);
+    if (!value || isNaN(num)) return t("priceError");
+    if (num <= 0) return t("priceError");
+    if (num > 10000000) return "Price too high";
+    return null;
+  };
+
+  const validateCO2 = (value: string): string | null => {
+    const num = parseFloat(value);
+    if (!value || isNaN(num)) return t("co2Error");
+    if (num < 0) return t("co2Error");
+    if (num > 500) return "Max 500 g/km";
+    return null;
+  };
+
+  const validateFiscalValue = (value: string): string | null => {
+    const num = parseFloat(value);
+    if (!value || isNaN(num)) return t("fiscalError");
+    if (num <= 0) return t("fiscalError");
+    return null;
+  };
+
+  // Validation errors
+  const errors = {
+    price: touched.price ? validatePrice(price) : null,
+    co2: touched.co2 ? validateCO2(co2) : null,
+    fiscalValue: touched.fiscalValue ? validateFiscalValue(fiscalValue) : null,
+  };
+
+  const isValid =
+    !validatePrice(price) &&
+    !validateCO2(co2) &&
+    !validateFiscalValue(fiscalValue);
 
   const handleCalculate = () => {
+    // Mark all as touched to show errors
+    setTouched({ price: true, co2: true, fiscalValue: true });
+
     if (!isValid) return;
 
     router.push({
@@ -46,13 +102,45 @@ export default function InputScreen() {
     });
   };
 
+  const handleVehicleSelected = (data: {
+    value: number;
+    brand?: string;
+    model?: string;
+    fuelType?: string;
+    isManual: boolean;
+  }) => {
+    setFiscalValue(data.value.toString());
+    setTouched((prev) => ({ ...prev, fiscalValue: true }));
+
+    // Auto-set CO2 to 0 for electric vehicles
+    if (data.fuelType === "Elc") {
+      setCo2("0");
+      setIsElectric(true);
+      setTouched((prev) => ({ ...prev, co2: true }));
+    } else {
+      setIsElectric(false);
+    }
+  };
+
+  // Country flags
+  const countryFlags: Record<Country, string> = {
+    Germany: "🇩🇪",
+    France: "🇫🇷",
+    Italy: "🇮🇹",
+    Belgium: "🇧🇪",
+    Netherlands: "🇳🇱",
+  };
+
   return (
     <View style={styles.container}>
+      {/* Language Switcher */}
+      <LanguageSwitcher />
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Origin Country */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>
-            <MapPin size={16} color={Colors.primary} /> Origin Country
+            <MapPin size={16} color={Colors.primary} /> {t("originCountry")}
           </Text>
           <View style={styles.row}>
             {(
@@ -78,7 +166,7 @@ export default function InputScreen() {
                     originCountry === c && styles.chipTextSelected,
                   ]}
                 >
-                  {c}
+                  {countryFlags[c]} {c}
                 </Text>
               </Pressable>
             ))}
@@ -88,53 +176,72 @@ export default function InputScreen() {
         {/* Price */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>
-            <Euro size={16} color={Colors.primary} /> Car Price (€)
+            <Euro size={16} color={Colors.primary} /> {t("carPrice")}
           </Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, errors.price && styles.inputError]}
             keyboardType="numeric"
             placeholder="25000"
             value={price}
             onChangeText={setPrice}
+            onBlur={() => setTouched((prev) => ({ ...prev, price: true }))}
           />
+          {errors.price && (
+            <View style={styles.errorContainer}>
+              <AlertCircle size={14} color="#DC2626" />
+              <Text style={styles.errorText}>{errors.price}</Text>
+            </View>
+          )}
         </View>
 
-        {/* Fiscal Value */}
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>
-            <Euro size={16} color={Colors.primary} /> Official Fiscal Value
-            (BOE)
-          </Text>
-          <Text style={{ fontSize: 12, color: "#666", marginBottom: 8 }}>
-            The "New Value" of this car model according to Hacienda.
-          </Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            placeholder="e.g. 45000"
-            value={fiscalValue}
-            onChangeText={setFiscalValue}
-          />
-        </View>
+        {/* Vehicle Search - Auto-fills Fiscal Value */}
+        <VehicleAutocomplete onVehicleSelected={handleVehicleSelected} />
+
+        {/* Show fiscal value if set */}
+        {fiscalValue && !errors.fiscalValue && (
+          <View style={styles.fiscalValueDisplay}>
+            <Text style={styles.fiscalValueLabel}>
+              💰 {t("manualEntryLabel")}
+            </Text>
+            <Text style={styles.fiscalValueAmount}>
+              €{parseFloat(fiscalValue).toLocaleString("de-DE")}
+            </Text>
+          </View>
+        )}
 
         {/* CO2 */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>
-            <Gauge size={16} color={Colors.primary} /> CO2 Emissions (g/km)
+            <Gauge size={16} color={Colors.primary} /> {t("co2")}
           </Text>
+          {isElectric && (
+            <View style={styles.evHint}>
+              <Text style={styles.evHintText}>{t("evDetected")}</Text>
+            </View>
+          )}
           <TextInput
-            style={styles.input}
+            style={[styles.input, errors.co2 && styles.inputError]}
             keyboardType="numeric"
             placeholder="145"
             value={co2}
-            onChangeText={setCo2}
+            onChangeText={(text) => {
+              setCo2(text);
+              if (text !== "0") setIsElectric(false);
+            }}
+            onBlur={() => setTouched((prev) => ({ ...prev, co2: true }))}
           />
+          {errors.co2 && (
+            <View style={styles.errorContainer}>
+              <AlertCircle size={14} color="#DC2626" />
+              <Text style={styles.errorText}>{errors.co2}</Text>
+            </View>
+          )}
         </View>
 
         {/* Age */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>
-            <GraduationCap size={16} color={Colors.primary} /> Car Age
+            <GraduationCap size={16} color={Colors.primary} /> {t("age")}
           </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {(
@@ -165,7 +272,12 @@ export default function InputScreen() {
                     age === a && styles.chipTextSelected,
                   ]}
                 >
-                  {a.replace(/_/g, " ").replace("years", "yrs")}
+                  {a === "new"
+                    ? t("age").split(" ")[0] || "New"
+                    : a
+                        .replace(/_/g, " ")
+                        .replace("years", "yrs")
+                        .replace("plus", "+")}
                 </Text>
               </Pressable>
             ))}
@@ -175,7 +287,7 @@ export default function InputScreen() {
         {/* Seller Type */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>
-            <User size={16} color={Colors.primary} /> Seller Type
+            <User size={16} color={Colors.primary} /> {t("sellerType")}
           </Text>
           <View style={styles.segmentContainer}>
             <Pressable
@@ -191,7 +303,7 @@ export default function InputScreen() {
                   sellerType === "dealer" && styles.segmentTextSelected,
                 ]}
               >
-                Dealer
+                {t("dealer")}
               </Text>
             </Pressable>
             <Pressable
@@ -207,14 +319,12 @@ export default function InputScreen() {
                   sellerType === "private" && styles.segmentTextSelected,
                 ]}
               >
-                Private
+                {t("private")}
               </Text>
             </Pressable>
           </View>
           {sellerType === "private" && (
-            <Text style={styles.infoText}>
-              ⚠️ Private sales may incur 4% ITP tax.
-            </Text>
+            <Text style={styles.infoText}>{t("privateSaleWarning")}</Text>
           )}
         </View>
 
@@ -226,9 +336,8 @@ export default function InputScreen() {
         <Pressable
           style={[styles.button, !isValid && styles.buttonDisabled]}
           onPress={handleCalculate}
-          disabled={!isValid}
         >
-          <Text style={styles.buttonText}>Calculate Total Cost</Text>
+          <Text style={styles.buttonText}>{t("calculate")}</Text>
         </Pressable>
       </View>
 
@@ -265,6 +374,20 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 18,
   },
+  inputError: {
+    borderColor: "#DC2626",
+    borderWidth: 2,
+  },
+  errorContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 6,
+  },
+  errorText: {
+    color: "#DC2626",
+    fontSize: 13,
+  },
   chip: {
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -291,13 +414,40 @@ const styles = StyleSheet.create({
   segmentText: { color: Colors.text },
   segmentTextSelected: { fontWeight: "bold", color: Colors.primary },
   infoText: { marginTop: 8, color: "#D97706", fontSize: 12 },
+  fiscalValueDisplay: {
+    backgroundColor: "#E6F4FE",
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 24,
+    alignItems: "center",
+  },
+  fiscalValueLabel: {
+    fontSize: 14,
+    color: Colors.textLight,
+    marginBottom: 4,
+  },
+  fiscalValueAmount: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: Colors.primary,
+  },
+  evHint: {
+    backgroundColor: "#D1FAE5",
+    padding: 8,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  evHintText: {
+    color: "#065F46",
+    fontSize: 13,
+    fontWeight: "500",
+  },
   footer: {
     position: "absolute",
-    bottom: 60, // Above Ad
+    bottom: 60,
     left: 0,
     right: 0,
     padding: 20,
-    // backgroundColor: "rgba(255,255,255,0.9)",
   },
   button: {
     backgroundColor: Colors.primary,

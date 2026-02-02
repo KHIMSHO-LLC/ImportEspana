@@ -2,9 +2,11 @@ import { Colors } from "@/constants/Colors";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 
+import { LanguageProvider } from "@/context/LanguageContext";
+
 export default function RootLayout() {
   return (
-    <>
+    <LanguageProvider>
       <StatusBar style="dark" />
       <Stack
         screenOptions={{
@@ -15,8 +17,8 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" options={{ title: "ImportEspana" }} />
-        <Stack.Screen name="result" options={{ title: "Estimated Cost" }} />
+        <Stack.Screen name="result" options={{ title: "ImportEspana" }} />
       </Stack>
-    </>
+    </LanguageProvider>
   );
 }

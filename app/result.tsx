@@ -1,4 +1,5 @@
 import { Colors } from "@/constants/Colors";
+import { useLanguage } from "@/context/LanguageContext";
 import { CalculationInput } from "@/types";
 import { calculateImportCost } from "@/utils/taxCalculator";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -23,15 +24,12 @@ import {
   TestIds,
 } from "react-native-google-mobile-ads";
 
-// Mock Chart implementation if chart-kit is too heavy
-// For MVP, a simple list is often better, but user asked for Donut.
-// We will use a simple list with colored bars for simplicity and robustness.
-
 const screenWidth = Dimensions.get("window").width;
 
 export default function ResultScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { t } = useLanguage();
 
   // Transform params back to typed input
   const input: CalculationInput = {
@@ -103,10 +101,7 @@ export default function ResultScreen() {
             // Also save to history
             await saveToHistory(result);
 
-            Alert.alert(
-              "Success!",
-              "Your estimate has been saved and is ready to share!",
-            );
+            Alert.alert("Success!", t("saveDownload"));
           } catch (error) {
             console.error("PDF generation error:", error);
             Alert.alert("Error", "Could not generate PDF. Please try again.");
@@ -124,7 +119,7 @@ export default function ResultScreen() {
       unsubscribeEarned();
       unsubscribeClosed();
     };
-  }, []); // Empty dependency array - only run once on mount
+  }, []);
 
   const saveToHistory = async (item: any) => {
     try {
@@ -132,10 +127,8 @@ export default function ResultScreen() {
       const history = existing ? JSON.parse(existing) : [];
       history.push({ ...item, date: new Date().toISOString() });
       await AsyncStorage.setItem("@import_history", JSON.stringify(history));
-      console.log("Saved to history:", history.length);
     } catch (e) {
       console.error("Failed to save", e);
-      Alert.alert("Error", "Could not save history.");
     }
   };
 
@@ -143,12 +136,12 @@ export default function ResultScreen() {
     if (adLoaded && rewardedAd) {
       rewardedAd.show();
     } else {
-      Alert.alert(
-        "Ad Loading...",
-        "Please wait a moment for the ad to load, then try again.",
-      );
+      Alert.alert(t("loadingAd"), "Please wait for ad.");
     }
   };
+
+  // Check if electric vehicle (CO2 = 0)
+  const isElectric = input.co2Emissions === 0;
 
   return (
     <ScrollView
@@ -169,16 +162,19 @@ export default function ResultScreen() {
             alignItems: "center",
           }}
         >
-          <Text style={styles.headerLabel}>ESTIMATED TOTAL COST</Text>
+          <Text style={styles.headerLabel}>{t("estimatedTotal")}</Text>
           <Text style={styles.totalAmount}>
             {result.totalCost.toLocaleString("de-DE", {
               style: "currency",
               currency: "EUR",
             })}
           </Text>
-          <Text style={styles.subDetail}>
-            Includes Car Price + All Taxes & Fees
-          </Text>
+          <Text style={styles.subDetail}>{t("includes")}</Text>
+          {isElectric && (
+            <View style={styles.evBadge}>
+              <Text style={styles.evBadgeText}>{t("evDetected")}</Text>
+            </View>
+          )}
         </Animated.View>
       </LinearGradient>
 
@@ -192,47 +188,39 @@ export default function ResultScreen() {
           },
         ]}
       >
-        <Text style={styles.cardTitle}>💶 Cost Breakdown</Text>
+        <Text style={styles.cardTitle}>💶 {t("breakdown")}</Text>
 
+        <Row label={t("carPrice")} value={input.carPrice} color={Colors.text} />
         <Row
-          label="Base Car Price"
-          value={input.carPrice}
-          color={Colors.text}
-        />
-        <Row
-          label="Transport"
+          label="Transport" // TODO: Translate if needed or keep generic
           value={result.transportCost}
           color={Colors.text}
         />
 
         <View style={styles.divider} />
-        <Text style={styles.sectionTitle}>TAXES & FEES (Spain)</Text>
+        <Text style={styles.sectionTitle}>{t("taxesFees")}</Text>
 
         <Row
-          label="Matriculation Tax"
+          label={t("registrationTax")}
           value={result.registrationTax}
           color={Colors.secondary}
           bold
         />
         {result.itpTax > 0 && (
           <Row
-            label="ITP (Transfer Tax)"
+            label={t("itp")}
             value={result.itpTax}
             color={Colors.secondary}
           />
         )}
 
-        <Row label="DGT Fee" value={result.dgtFee} color={Colors.text} />
-        <Row label="ITV Inspection" value={result.itvFee} color={Colors.text} />
-        <Row
-          label="Plates & Admin"
-          value={result.platesFee}
-          color={Colors.text}
-        />
+        <Row label={t("dgt")} value={result.dgtFee} color={Colors.text} />
+        <Row label={t("itv")} value={result.itvFee} color={Colors.text} />
+        <Row label={t("plates")} value={result.platesFee} color={Colors.text} />
 
         <View style={styles.divider} />
         <View style={styles.row}>
-          <Text style={styles.labelBold}>Total Import Cost</Text>
+          <Text style={styles.labelBold}>{t("totalImportCost")}</Text>
           <Text
             style={[
               styles.value,
@@ -257,19 +245,19 @@ export default function ResultScreen() {
           },
         ]}
       >
-        <Text style={styles.cardTitle}>📊 Calculation Details</Text>
+        <Text style={styles.cardTitle}>📊 {t("calculationDetails")}</Text>
         <View style={styles.statRow}>
-          <Text style={styles.statLabel}>Depreciation Applied:</Text>
+          <Text style={styles.statLabel}>{t("depreciation")}</Text>
           <Text style={styles.statValue}>
             {((1 - result.depreciationPercentage) * 100).toFixed(0)}%
           </Text>
         </View>
         <View style={styles.statRow}>
-          <Text style={styles.statLabel}>Tax Base (Hacienda):</Text>
+          <Text style={styles.statLabel}>{t("taxBase")}</Text>
           <Text style={styles.statValue}>{result.taxBase.toFixed(0)}€</Text>
         </View>
         <View style={styles.statRow}>
-          <Text style={styles.statLabel}>Tax Rate Applied:</Text>
+          <Text style={styles.statLabel}>{t("taxRate")}</Text>
           <Text style={styles.statValue}>
             {(result.taxRateApplied * 100).toFixed(2)}% (CO2:{" "}
             {input.co2Emissions}g/km)
@@ -301,13 +289,15 @@ export default function ResultScreen() {
             end={{ x: 1, y: 0 }}
           >
             <Save color="#000" size={20} />
-            <Text style={styles.saveButtonText}>Save & Download PDF</Text>
+            <Text style={styles.saveButtonText}>{t("saveDownload")}</Text>
             {!adLoaded && (
-              <Text style={{ fontSize: 10, color: "#444" }}>(Loading...)</Text>
+              <Text style={{ fontSize: 10, color: "#444" }}>
+                {t("loadingAd")}
+              </Text>
             )}
           </LinearGradient>
         </Pressable>
-        <Text style={styles.adHint}>📺 Watch a short ad to download</Text>
+        <Text style={styles.adHint}>{t("watchAd")}</Text>
       </Animated.View>
     </ScrollView>
   );
@@ -368,7 +358,23 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
   },
-  subDetail: { color: "rgba(255,255,255,0.7)", fontSize: 13 },
+  subDetail: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 13,
+    textAlign: "center",
+  },
+  evBadge: {
+    marginTop: 12,
+    backgroundColor: "#10B981",
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  evBadgeText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "700",
+  },
 
   card: {
     backgroundColor: Colors.white,
