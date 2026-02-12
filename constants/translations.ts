@@ -46,6 +46,20 @@ export const translations = {
     loadingAd: "(Loading...)",
     // PDF
     pdfTitle: "Import Cost Estimate",
+    // Tooltips
+    originCountryInfo:
+      "The country where the vehicle is currently registered or coming from.",
+    vehicleSearchInfo:
+      "Search our database of 70k+ vehicles to find the official fiscal value.",
+    yearInfo: "Filter models by year to find the exact match easily.",
+    carPriceInfo:
+      "The price you paid or will pay for the car (Purchase Price).",
+    ageInfo: "The age of the car determines the depreciation percentage.",
+    co2Info: "CO2 emissions determine the registration tax bracket.",
+    sellerTypeInfo:
+      "Buying from a Dealer avoids ITP tax. Buying from a Private Seller incurs 4% ITP.",
+    fiscalInfo:
+      "The official value assigned by the Spanish tax authority (BOE).",
   },
   es: {
     originCountry: "País de Origen",
@@ -91,6 +105,20 @@ export const translations = {
     watchAd: "📺 Mira un anuncio para descargar",
     loadingAd: "(Cargando...)",
     pdfTitle: "Presupuesto de Importación",
+    // Tooltips
+    originCountryInfo:
+      "El país donde el vehículo está registrado actualmente o de donde proviene.",
+    vehicleSearchInfo:
+      "Busca en nuestra base de datos de +70k vehículos para encontrar el valor fiscal oficial.",
+    yearInfo: "Filtra modelos por año para encontrar la coincidencia exacta.",
+    carPriceInfo:
+      "El precio que pagaste o pagarás por el coche (Precio de Compra).",
+    ageInfo: "La antigüedad del coche determina el porcentaje de depreciación.",
+    co2Info:
+      "Las emisiones de CO2 determinan el tramo del impuesto de matriculación.",
+    sellerTypeInfo:
+      "Comprar a un Concesionario evita el ITP. Comprar a un Particular conlleva un 4% de ITP.",
+    fiscalInfo: "El valor oficial asignado por la Agencia Tributaria (BOE).",
   },
   ru: {
     originCountry: "Страна происхождения",
@@ -133,6 +161,19 @@ export const translations = {
     watchAd: "📺 Посмотрите рекламу для скачивания",
     loadingAd: "(Загрузка...)",
     pdfTitle: "Смета импорта",
+    // Tooltips
+    originCountryInfo:
+      "Страна, где автомобиль зарегистрирован или откуда он прибывает.",
+    vehicleSearchInfo:
+      "Поиск по базе данных 70k+ автомобилей для нахождения официальной налоговой стоимости.",
+    yearInfo: "Фильтруйте модели по году для точного поиска.",
+    carPriceInfo: "Цена, которую вы платите за автомобиль (Цена покупки).",
+    ageInfo: "Возраст автомобиля определяет процент амортизации.",
+    co2Info: "Выбросы CO2 определяют ставку регистрационного налога.",
+    sellerTypeInfo:
+      "Покупка у дилера освобождает от ITP. Покупка у частника облагается 4% ITP.",
+    fiscalInfo:
+      "Официальная стоимость, установленная налоговой службой Испании (BOE).",
   },
   de: {
     originCountry: "Herkunftsland",
@@ -175,6 +216,20 @@ export const translations = {
     watchAd: "📺 Werbung ansehen zum Herunterladen",
     loadingAd: "(Lädt...)",
     pdfTitle: "Importkostenvoranschlag",
+    // Tooltips
+    originCountryInfo:
+      "Das Land, in dem das Fahrzeug derzeit zugelassen ist oder herkommt.",
+    vehicleSearchInfo:
+      "Durchsuchen Sie unsere Datenbank mit über 70.000 Fahrzeugen nach dem offiziellen Steuerwert.",
+    yearInfo:
+      "Filtern Sie Modelle nach Jahr, um die genaue Übereinstimmung zu finden.",
+    carPriceInfo: "Der Preis, den Sie für das Auto zahlen (Kaufpreis).",
+    ageInfo: "Das Fahrzeugalter bestimmt den Abschreibungsprozentsatz.",
+    co2Info: "CO2-Emissionen bestimmen die Zulassungssteuerklasse.",
+    sellerTypeInfo:
+      "Kauf vom Händler vermeidet ITP-Steuer. Kauf von Privatperson: 4% ITP.",
+    fiscalInfo:
+      "Der von der spanischen Steuerbehörde (BOE) festgelegte offizielle Wert.",
   },
   fr: {
     originCountry: "Pays d'origine",
@@ -218,5 +273,20 @@ export const translations = {
     watchAd: "📺 Regarder une pub pour télécharger",
     loadingAd: "(Chargement...)",
     pdfTitle: "Devis d'importation",
+    // Tooltips
+    originCountryInfo:
+      "Le pays où le véhicule est actuellement immatriculé ou d'où il provient.",
+    vehicleSearchInfo:
+      "Recherchez dans notre base de données de +70k véhicules pour trouver la valeur fiscale officielle.",
+    yearInfo:
+      "Filtrez les modèles par année pour trouver la correspondance exacte.",
+    carPriceInfo: "Le prix que vous payez pour la voiture (Prix d'achat).",
+    ageInfo: "L'âge du véhicule détermine le pourcentage de dépréciation.",
+    co2Info:
+      "Les émissions de CO2 déterminent la tranche de la taxe d'immatriculation.",
+    sellerTypeInfo:
+      "L'achat chez un concessionnaire évite la taxe ITP. L'achat à un particulier encourt 4% d'ITP.",
+    fiscalInfo:
+      "La valeur officielle attribuée par l'administration fiscale espagnole (BOE).",
   },
 };

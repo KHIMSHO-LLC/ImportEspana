@@ -12,10 +12,17 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "channel": "production"
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appleId": "giorgikhimshiashvili@gmail.com",
+        "ascAppId": "6742761890",
+        "appleTeamId": "KV6555Y3C8"
+      }
+    }
   }
 }

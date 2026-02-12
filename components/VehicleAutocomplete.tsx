@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import boePrices from "../src/data/boe_prices.json";
+import { InfoTooltip } from "./InfoTooltip";
 
 interface Vehicle {
   id: string;
@@ -34,22 +35,50 @@ interface VehicleAutocompleteProps {
     model?: string;
     fuelType?: string;
     isManual: boolean;
+    year?: number;
   }) => void;
+  initialData?: {
+    brand?: string;
+    model?: string;
+    value: number;
+    fuelType?: string;
+    isManual: boolean;
+  } | null;
 }
 
 export function VehicleAutocomplete({
   onVehicleSelected,
+  initialData,
 }: VehicleAutocompleteProps) {
   const { t } = useLanguage();
-  const [brandQuery, setBrandQuery] = useState("");
-  const [modelQuery, setModelQuery] = useState("");
+  const [brandQuery, setBrandQuery] = useState(initialData?.brand || "");
+  const [modelQuery, setModelQuery] = useState(initialData?.model || "");
   const [yearFilter, setYearFilter] = useState("");
-  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
-  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [selectedBrand, setSelectedBrand] = useState<string | null>(
+    initialData?.brand || null,
+  );
+
+  // Initialize selected vehicle if we have specific data, otherwise null
+  // Note: We don't have the full object from initialData, so we construct a partial or just rely on state
+  const [selectedVehicle, setSelectedVehicle] = useState<any | null>(
+    initialData && !initialData.isManual && initialData.brand
+      ? {
+          brand: initialData.brand,
+          model: initialData.model,
+          value: initialData.value,
+          fuelType: initialData.fuelType,
+        }
+      : null,
+  );
+
   const [showBrandSuggestions, setShowBrandSuggestions] = useState(false);
   const [showModelSuggestions, setShowModelSuggestions] = useState(false);
-  const [isManualMode, setIsManualMode] = useState(false);
-  const [manualValue, setManualValue] = useState("");
+  const [isManualMode, setIsManualMode] = useState(
+    initialData?.isManual || false,
+  );
+  const [manualValue, setManualValue] = useState(
+    initialData?.isManual ? initialData.value.toString() : "",
+  );
 
   // Get unique brands
   const allBrands = useMemo(() => {
@@ -89,6 +118,7 @@ export function VehicleAutocomplete({
         if (year) {
           const startYear = parseInt(vehicle.startYear);
           const endYear = vehicle.endYear ? parseInt(vehicle.endYear) : 2026;
+          // Updated Logic: Ensure the model availability overlaps with the requested year
           if (year < startYear || year > endYear) return false;
         }
 
@@ -110,12 +140,17 @@ export function VehicleAutocomplete({
     setSelectedVehicle(vehicle);
     setModelQuery(vehicle.model);
     setShowModelSuggestions(false);
+
+    // Determine the year to pass.
+    const yearInput = yearFilter ? parseInt(yearFilter) : undefined;
+
     onVehicleSelected({
       value: vehicle.value,
       brand: vehicle.brand,
       model: vehicle.model,
       fuelType: vehicle.fuelType,
       isManual: false,
+      year: yearInput,
     });
     Keyboard.dismiss();
   };
@@ -145,7 +180,9 @@ export function VehicleAutocomplete({
     return (
       <View style={styles.container}>
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>💰 {t("manualEntryLabel")}</Text>
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>💰 {t("manualEntryLabel")}</Text>
+          </View>
           <Text style={styles.helpText}>{t("manualEntryHelp")}</Text>
           <TextInput
             style={styles.input}
@@ -177,7 +214,10 @@ export function VehicleAutocomplete({
     <View style={styles.container}>
       {/* Brand Search */}
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>🚗 {t("brand")}</Text>
+        <View style={styles.labelRow}>
+          <Text style={styles.label}>🚗 {t("brand")}</Text>
+          <InfoTooltip text={t("vehicleSearchInfo")} />
+        </View>
         <TextInput
           style={styles.input}
           placeholder="Escribe la marca (ej: Mercedes, BMW)"
@@ -214,7 +254,10 @@ export function VehicleAutocomplete({
       {/* Year Filter (optional) */}
       {selectedBrand && (
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>📅 {t("yearOptional")}</Text>
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>📅 {t("yearOptional")}</Text>
+            <InfoTooltip text={t("yearInfo")} />
+          </View>
           <TextInput
             style={[styles.input, styles.yearInput]}
             keyboardType="numeric"
@@ -229,7 +272,10 @@ export function VehicleAutocomplete({
       {/* Model Search */}
       {selectedBrand && (
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>🔧 {t("model")}</Text>
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>🔧 {t("model")}</Text>
+            <InfoTooltip text={t("vehicleSearchInfo")} />
+          </View>
           <TextInput
             style={styles.input}
             placeholder="Escribe el modelo (ej: X5, Clase C)"
@@ -306,11 +352,15 @@ const styles = StyleSheet.create({
     position: "relative",
     zIndex: 1,
   },
+  labelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
   label: {
     fontSize: 16,
     fontWeight: "600",
     color: Colors.text,
-    marginBottom: 8,
   },
   helpText: {
     fontSize: 12,
@@ -330,7 +380,7 @@ const styles = StyleSheet.create({
   },
   suggestionsContainer: {
     position: "absolute",
-    top: 70,
+    top: 80, // Adjusted for labelRow
     left: 0,
     right: 0,
     backgroundColor: Colors.white,

@@ -4,23 +4,34 @@
     "slug": "ImportEspana",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/icons/ios-light.png",
     "scheme": "importespana",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "updates": {
+      "url": "https://u.expo.dev/3a93fcfd-b8ed-4b00-a6e1-2641bfa41930"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.gio-khimsho.ImportEspana",
       "infoPlist": {
-        "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized ads to you."
+        "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized ads to you.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "icon": {
+        "light": "./assets/images/icons/ios-light.png",
+        "dark": "./assets/images/icons/ios-dark.png",
+        "tinted": "./assets/images/icons/ios-tinted.png"
       }
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/icons/adaptive-icon.png",
+        "monochromeImage": "./assets/images/icons/adaptive-icon.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -35,11 +46,12 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/icons/splash-icon-light.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
           "dark": {
+            "image": "./assets/images/icons/splash-icon-dark.png",
             "backgroundColor": "#000000"
           }
         }
@@ -47,8 +59,8 @@
       [
         "react-native-google-mobile-ads",
         {
-          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
-          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
+          "androidAppId": "ca-app-pub-8296385442547902~3094231182",
+          "iosAppId": "ca-app-pub-8296385442547902~3109718643"
         }
       ],
       "expo-localization"

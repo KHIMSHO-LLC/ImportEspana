@@ -1,5 +1,7 @@
+import { InfoTooltip } from "@/components/InfoTooltip";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { VehicleAutocomplete } from "@/components/VehicleAutocomplete";
+import { AdUnits } from "@/constants/Ads";
 import { Colors } from "@/constants/Colors";
 import { useLanguage } from "@/context/LanguageContext";
 import { CarAge, Country } from "@/types";
@@ -10,10 +12,13 @@ import {
   Gauge,
   GraduationCap,
   MapPin,
+  RotateCcw,
   User,
 } from "lucide-react-native";
 import React, { useState } from "react";
 import {
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -21,11 +26,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import {
-  BannerAd,
-  BannerAdSize,
-  TestIds,
-} from "react-native-google-mobile-ads";
+import { BannerAd, BannerAdSize } from "react-native-google-mobile-ads";
 
 export default function InputScreen() {
   const router = useRouter();
@@ -39,6 +40,7 @@ export default function InputScreen() {
   const [age, setAge] = useState<CarAge>("3_years");
   const [sellerType, setSellerType] = useState<"dealer" | "private">("dealer");
   const [isElectric, setIsElectric] = useState(false);
+  const [resetKey, setResetKey] = useState(0); // To force remount of autocomplete
 
   // Validation state
   const [touched, setTouched] = useState({
@@ -102,12 +104,25 @@ export default function InputScreen() {
     });
   };
 
+  const handleReset = () => {
+    setOriginCountry("Germany");
+    setPrice("");
+    setFiscalValue("");
+    setCo2("");
+    setAge("new");
+    setSellerType("dealer");
+    setIsElectric(false);
+    setTouched({ price: false, co2: false, fiscalValue: false });
+    setResetKey((prev) => prev + 1); // Force autocomplete reset
+  };
+
   const handleVehicleSelected = (data: {
     value: number;
     brand?: string;
     model?: string;
     fuelType?: string;
     isManual: boolean;
+    year?: number;
   }) => {
     setFiscalValue(data.value.toString());
     setTouched((prev) => ({ ...prev, fiscalValue: true }));
@@ -119,6 +134,30 @@ export default function InputScreen() {
       setTouched((prev) => ({ ...prev, co2: true }));
     } else {
       setIsElectric(false);
+    }
+
+    // Auto-calculate age if year is provided
+    if (data.year) {
+      const currentYear = new Date().getFullYear();
+      const carYear = data.year;
+      const diff = currentYear - carYear;
+
+      let calculatedAge: CarAge = "new";
+      if (diff < 1) calculatedAge = "new";
+      else if (diff >= 1 && diff < 2) calculatedAge = "1_year";
+      else if (diff >= 2 && diff < 3) calculatedAge = "2_years";
+      else if (diff >= 3 && diff < 4) calculatedAge = "3_years";
+      else if (diff >= 4 && diff < 5) calculatedAge = "4_years";
+      else if (diff >= 5 && diff < 6) calculatedAge = "5_years";
+      else if (diff >= 6 && diff < 7) calculatedAge = "6_years";
+      else if (diff >= 7 && diff < 8) calculatedAge = "7_years";
+      else if (diff >= 8 && diff < 9) calculatedAge = "8_years";
+      else if (diff >= 9 && diff < 10) calculatedAge = "9_years";
+      else if (diff >= 10 && diff < 11) calculatedAge = "10_years";
+      else if (diff >= 11 && diff < 12) calculatedAge = "11_years";
+      else calculatedAge = "12_plus_years";
+
+      setAge(calculatedAge);
     }
   };
 
@@ -136,215 +175,239 @@ export default function InputScreen() {
       {/* Language Switcher */}
       <LanguageSwitcher />
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Origin Country */}
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>
-            <MapPin size={16} color={Colors.primary} /> {t("originCountry")}
-          </Text>
-          <View style={styles.row}>
-            {(
-              [
-                "Germany",
-                "France",
-                "Italy",
-                "Belgium",
-                "Netherlands",
-              ] as Country[]
-            ).map((c) => (
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {/* Origin Country */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>
+              <MapPin size={16} color={Colors.primary} /> {t("originCountry")}
+              <InfoTooltip text={t("originCountryInfo")} />
+            </Text>
+            <View style={styles.row}>
+              {(
+                [
+                  "Germany",
+                  "France",
+                  "Italy",
+                  "Belgium",
+                  "Netherlands",
+                ] as Country[]
+              ).map((c) => (
+                <Pressable
+                  key={c}
+                  style={[
+                    styles.chip,
+                    originCountry === c && styles.chipSelected,
+                  ]}
+                  onPress={() => setOriginCountry(c)}
+                >
+                  <Text
+                    style={[
+                      styles.chipText,
+                      originCountry === c && styles.chipTextSelected,
+                    ]}
+                  >
+                    {countryFlags[c]} {c}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
+          {/* Price */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>
+              <Euro size={16} color={Colors.primary} /> {t("carPrice")}
+              <InfoTooltip text={t("carPriceInfo")} />
+            </Text>
+            <TextInput
+              style={[styles.input, errors.price && styles.inputError]}
+              keyboardType="numeric"
+              placeholder="25000"
+              value={price}
+              onChangeText={setPrice}
+              onBlur={() => setTouched((prev) => ({ ...prev, price: true }))}
+            />
+            {errors.price && (
+              <View style={styles.errorContainer}>
+                <AlertCircle size={14} color="#DC2626" />
+                <Text style={styles.errorText}>{errors.price}</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Vehicle Search - Auto-fills Fiscal Value */}
+          <VehicleAutocomplete
+            key={resetKey}
+            onVehicleSelected={handleVehicleSelected}
+          />
+
+          {/* Show fiscal value if set */}
+          {fiscalValue && !errors.fiscalValue && (
+            <View style={styles.fiscalValueDisplay}>
+              <Text style={styles.fiscalValueLabel}>
+                💰 {t("manualEntryLabel")}
+                <InfoTooltip text={t("fiscalInfo")} />
+              </Text>
+              <Text style={styles.fiscalValueAmount}>
+                €{parseFloat(fiscalValue).toLocaleString("de-DE")}
+              </Text>
+            </View>
+          )}
+
+          {/* CO2 */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>
+              <Gauge size={16} color={Colors.primary} /> {t("co2")}
+              <InfoTooltip text={t("co2Info")} />
+            </Text>
+            {isElectric && (
+              <View style={styles.evHint}>
+                <Text style={styles.evHintText}>{t("evDetected")}</Text>
+              </View>
+            )}
+            <TextInput
+              style={[styles.input, errors.co2 && styles.inputError]}
+              keyboardType="numeric"
+              placeholder="145"
+              value={co2}
+              onChangeText={(text) => {
+                setCo2(text);
+                if (text !== "0") setIsElectric(false);
+              }}
+              onBlur={() => setTouched((prev) => ({ ...prev, co2: true }))}
+            />
+            {errors.co2 && (
+              <View style={styles.errorContainer}>
+                <AlertCircle size={14} color="#DC2626" />
+                <Text style={styles.errorText}>{errors.co2}</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Age */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>
+              <GraduationCap size={16} color={Colors.primary} /> {t("age")}
+              <InfoTooltip text={t("ageInfo")} />
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {(
+                [
+                  "new",
+                  "1_year",
+                  "2_years",
+                  "3_years",
+                  "4_years",
+                  "5_years",
+                  "6_years",
+                  "7_years",
+                  "8_years",
+                  "9_years",
+                  "10_years",
+                  "11_years",
+                  "12_plus_years",
+                ] as CarAge[]
+              ).map((a) => (
+                <Pressable
+                  key={a}
+                  style={[styles.chip, age === a && styles.chipSelected]}
+                  onPress={() => setAge(a)}
+                >
+                  <Text
+                    style={[
+                      styles.chipText,
+                      age === a && styles.chipTextSelected,
+                    ]}
+                  >
+                    {a === "new"
+                      ? t("age").split(" ")[0] || "New"
+                      : a
+                          .replace(/_/g, " ")
+                          .replace("years", "yrs")
+                          .replace("plus", "+")}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+
+          {/* Seller Type */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>
+              <User size={16} color={Colors.primary} /> {t("sellerType")}
+              <InfoTooltip text={t("sellerTypeInfo")} />
+            </Text>
+            <View style={styles.segmentContainer}>
               <Pressable
-                key={c}
                 style={[
-                  styles.chip,
-                  originCountry === c && styles.chipSelected,
+                  styles.segment,
+                  sellerType === "dealer" && styles.segmentSelected,
                 ]}
-                onPress={() => setOriginCountry(c)}
+                onPress={() => setSellerType("dealer")}
               >
                 <Text
                   style={[
-                    styles.chipText,
-                    originCountry === c && styles.chipTextSelected,
+                    styles.segmentText,
+                    sellerType === "dealer" && styles.segmentTextSelected,
                   ]}
                 >
-                  {countryFlags[c]} {c}
+                  {t("dealer")}
                 </Text>
               </Pressable>
-            ))}
-          </View>
-        </View>
-
-        {/* Price */}
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>
-            <Euro size={16} color={Colors.primary} /> {t("carPrice")}
-          </Text>
-          <TextInput
-            style={[styles.input, errors.price && styles.inputError]}
-            keyboardType="numeric"
-            placeholder="25000"
-            value={price}
-            onChangeText={setPrice}
-            onBlur={() => setTouched((prev) => ({ ...prev, price: true }))}
-          />
-          {errors.price && (
-            <View style={styles.errorContainer}>
-              <AlertCircle size={14} color="#DC2626" />
-              <Text style={styles.errorText}>{errors.price}</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Vehicle Search - Auto-fills Fiscal Value */}
-        <VehicleAutocomplete onVehicleSelected={handleVehicleSelected} />
-
-        {/* Show fiscal value if set */}
-        {fiscalValue && !errors.fiscalValue && (
-          <View style={styles.fiscalValueDisplay}>
-            <Text style={styles.fiscalValueLabel}>
-              💰 {t("manualEntryLabel")}
-            </Text>
-            <Text style={styles.fiscalValueAmount}>
-              €{parseFloat(fiscalValue).toLocaleString("de-DE")}
-            </Text>
-          </View>
-        )}
-
-        {/* CO2 */}
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>
-            <Gauge size={16} color={Colors.primary} /> {t("co2")}
-          </Text>
-          {isElectric && (
-            <View style={styles.evHint}>
-              <Text style={styles.evHintText}>{t("evDetected")}</Text>
-            </View>
-          )}
-          <TextInput
-            style={[styles.input, errors.co2 && styles.inputError]}
-            keyboardType="numeric"
-            placeholder="145"
-            value={co2}
-            onChangeText={(text) => {
-              setCo2(text);
-              if (text !== "0") setIsElectric(false);
-            }}
-            onBlur={() => setTouched((prev) => ({ ...prev, co2: true }))}
-          />
-          {errors.co2 && (
-            <View style={styles.errorContainer}>
-              <AlertCircle size={14} color="#DC2626" />
-              <Text style={styles.errorText}>{errors.co2}</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Age */}
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>
-            <GraduationCap size={16} color={Colors.primary} /> {t("age")}
-          </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {(
-              [
-                "new",
-                "1_year",
-                "2_years",
-                "3_years",
-                "4_years",
-                "5_years",
-                "6_years",
-                "7_years",
-                "8_years",
-                "9_years",
-                "10_years",
-                "11_years",
-                "12_plus_years",
-              ] as CarAge[]
-            ).map((a) => (
               <Pressable
-                key={a}
-                style={[styles.chip, age === a && styles.chipSelected]}
-                onPress={() => setAge(a)}
+                style={[
+                  styles.segment,
+                  sellerType === "private" && styles.segmentSelected,
+                ]}
+                onPress={() => setSellerType("private")}
               >
                 <Text
                   style={[
-                    styles.chipText,
-                    age === a && styles.chipTextSelected,
+                    styles.segmentText,
+                    sellerType === "private" && styles.segmentTextSelected,
                   ]}
                 >
-                  {a === "new"
-                    ? t("age").split(" ")[0] || "New"
-                    : a
-                        .replace(/_/g, " ")
-                        .replace("years", "yrs")
-                        .replace("plus", "+")}
+                  {t("private")}
                 </Text>
               </Pressable>
-            ))}
-          </ScrollView>
-        </View>
+            </View>
+            {sellerType === "private" && (
+              <Text style={styles.infoText}>{t("privateSaleWarning")}</Text>
+            )}
+          </View>
 
-        {/* Seller Type */}
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>
-            <User size={16} color={Colors.primary} /> {t("sellerType")}
-          </Text>
-          <View style={styles.segmentContainer}>
+          <View style={{ height: 100 }} />
+        </ScrollView>
+
+        {/* Footer Buttons */}
+        <View style={styles.footer}>
+          <View style={styles.buttonRow}>
             <Pressable
-              style={[
-                styles.segment,
-                sellerType === "dealer" && styles.segmentSelected,
-              ]}
-              onPress={() => setSellerType("dealer")}
+              style={styles.resetButton}
+              onPress={handleReset}
+              hitSlop={10}
             >
-              <Text
-                style={[
-                  styles.segmentText,
-                  sellerType === "dealer" && styles.segmentTextSelected,
-                ]}
-              >
-                {t("dealer")}
-              </Text>
+              <RotateCcw size={20} color={Colors.textLight} />
             </Pressable>
             <Pressable
-              style={[
-                styles.segment,
-                sellerType === "private" && styles.segmentSelected,
-              ]}
-              onPress={() => setSellerType("private")}
+              style={[styles.button, !isValid && styles.buttonDisabled]}
+              onPress={handleCalculate}
             >
-              <Text
-                style={[
-                  styles.segmentText,
-                  sellerType === "private" && styles.segmentTextSelected,
-                ]}
-              >
-                {t("private")}
-              </Text>
+              <Text style={styles.buttonText}>{t("calculate")}</Text>
             </Pressable>
           </View>
-          {sellerType === "private" && (
-            <Text style={styles.infoText}>{t("privateSaleWarning")}</Text>
-          )}
         </View>
-
-        <View style={{ height: 100 }} />
-      </ScrollView>
-
-      {/* Floating Button */}
-      <View style={styles.footer}>
-        <Pressable
-          style={[styles.button, !isValid && styles.buttonDisabled]}
-          onPress={handleCalculate}
-        >
-          <Text style={styles.buttonText}>{t("calculate")}</Text>
-        </Pressable>
-      </View>
+      </KeyboardAvoidingView>
 
       {/* AdBanner */}
       <View style={{ alignItems: "center", backgroundColor: "#fff" }}>
         <BannerAd
-          unitId={TestIds.BANNER}
+          unitId={AdUnits.BANNER}
           size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
         />
       </View>
@@ -425,6 +488,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textLight,
     marginBottom: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    zIndex: 10,
+    elevation: 2,
   },
   fiscalValueAmount: {
     fontSize: 24,
@@ -449,7 +516,12 @@ const styles = StyleSheet.create({
     right: 0,
     padding: 20,
   },
+  buttonRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
   button: {
+    flex: 1,
     backgroundColor: Colors.primary,
     padding: 16,
     borderRadius: 12,
@@ -459,6 +531,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
+  },
+  resetButton: {
+    backgroundColor: Colors.white,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: Colors.border,
+    width: 56,
   },
   buttonDisabled: { backgroundColor: "#CBD5E1", opacity: 0.6 },
   buttonText: { fontSize: 18, fontWeight: "bold", color: Colors.white },

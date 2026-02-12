@@ -1,3 +1,4 @@
+import { AdUnits } from "@/constants/Ads";
 import { Colors } from "@/constants/Colors";
 import { useLanguage } from "@/context/LanguageContext";
 import { CalculationInput } from "@/types";
@@ -21,7 +22,6 @@ import {
   AdEventType,
   RewardedAd,
   RewardedAdEventType,
-  TestIds,
 } from "react-native-google-mobile-ads";
 
 const screenWidth = Dimensions.get("window").width;
@@ -67,7 +67,7 @@ export default function ResultScreen() {
   }, []);
 
   useEffect(() => {
-    const ad = RewardedAd.createForAdRequest(TestIds.REWARDED, {
+    const ad = RewardedAd.createForAdRequest(AdUnits.REWARDED, {
       requestNonPersonalizedAdsOnly: true,
     });
 
