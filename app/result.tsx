@@ -46,7 +46,9 @@ export default function ResultScreen() {
 
   const [adLoaded, setAdLoaded] = useState(false);
   const [rewardedAd, setRewardedAd] = useState<RewardedAd | null>(null);
+  const [adError, setAdError] = useState(false);
   const rewardEarned = useRef(false);
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
 
@@ -66,6 +68,19 @@ export default function ResultScreen() {
     ]).start();
   }, []);
 
+  // Helper function to download PDF directly
+  const downloadPDF = async () => {
+    try {
+      const { generateAndSharePDF } = await import("@/utils/generatePdf");
+      await generateAndSharePDF(input, result);
+      await saveToHistory(result);
+      Alert.alert("Success!", t("saveDownload"));
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      Alert.alert("Error", "Could not generate PDF. Please try again.");
+    }
+  };
+
   useEffect(() => {
     const ad = RewardedAd.createForAdRequest(AdUnits.REWARDED, {
       requestNonPersonalizedAdsOnly: true,
@@ -75,6 +90,16 @@ export default function ResultScreen() {
       RewardedAdEventType.LOADED,
       () => {
         setAdLoaded(true);
+        setAdError(false);
+      },
+    );
+
+    const unsubscribeError = ad.addAdEventListener(
+      AdEventType.ERROR,
+      (error) => {
+        console.log("Ad failed to load:", error);
+        setAdError(true);
+        setAdLoaded(false);
       },
     );
 
@@ -88,25 +113,12 @@ export default function ResultScreen() {
     const unsubscribeClosed = ad.addAdEventListener(
       AdEventType.CLOSED,
       async () => {
-        // Load a new ad for next time
         setAdLoaded(false);
-        ad.load();
+        ad.load(); // Load next
 
         if (rewardEarned.current) {
-          try {
-            // Generate and share PDF
-            const { generateAndSharePDF } = await import("@/utils/generatePdf");
-            await generateAndSharePDF(input, result);
-
-            // Also save to history
-            await saveToHistory(result);
-
-            Alert.alert("Success!", t("saveDownload"));
-          } catch (error) {
-            console.error("PDF generation error:", error);
-            Alert.alert("Error", "Could not generate PDF. Please try again.");
-          }
-          rewardEarned.current = false; // Reset
+          await downloadPDF();
+          rewardEarned.current = false;
         }
       },
     );
@@ -116,6 +128,7 @@ export default function ResultScreen() {
 
     return () => {
       unsubscribeLoaded();
+      unsubscribeError();
       unsubscribeEarned();
       unsubscribeClosed();
     };
@@ -133,8 +146,11 @@ export default function ResultScreen() {
   };
 
   const handleSave = () => {
-    if (adLoaded && rewardedAd) {
+    if (adLoaded && rewardedAd && !adError) {
       rewardedAd.show();
+    } else if (adError) {
+      // Fallback if ad failed to load
+      downloadPDF();
     } else {
       Alert.alert(t("loadingAd"), "Please wait for ad.");
     }

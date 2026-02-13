@@ -2,7 +2,7 @@
   "expo": {
     "name": "ImportEspana",
     "slug": "ImportEspana",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icons/ios-light.png",
     "scheme": "importespana",
@@ -15,6 +15,7 @@
       "policy": "appVersion"
     },
     "ios": {
+      "buildNumber": "2",
       "supportsTablet": true,
       "bundleIdentifier": "com.gio-khimsho.ImportEspana",
       "infoPlist": {
@@ -28,6 +29,7 @@
       }
     },
     "android": {
+      "versionCode": 2,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/icons/adaptive-icon.png",

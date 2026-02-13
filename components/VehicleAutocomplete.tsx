@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   yearInput: {
-    width: 120,
+    // width: 120, // Removed to allow full width
   },
   suggestionsContainer: {
     position: "absolute",
