@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: "absolute",
-    bottom: 60,
+    bottom: 0, // Increased from 60 to avoid ad overlap
     left: 0,
     right: 0,
     padding: 20,
