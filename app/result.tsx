@@ -1,7 +1,8 @@
 import { AdUnits } from "@/constants/Ads";
 import { Colors } from "@/constants/Colors";
 import { useLanguage } from "@/context/LanguageContext";
-import { CalculationInput } from "@/types";
+import { useRevenueCat } from "@/context/RevenueCatContext";
+import { CalculationInput, CalculationResult } from "@/types";
 import { calculateImportCost } from "@/utils/taxCalculator";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
@@ -30,6 +31,7 @@ export default function ResultScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { t } = useLanguage();
+  const { isPro } = useRevenueCat();
 
   // Transform params back to typed input
   const input: CalculationInput = {
@@ -66,6 +68,9 @@ export default function ResultScreen() {
         useNativeDriver: true,
       }),
     ]).start();
+
+    // Auto-save to history
+    saveToHistory(input, result);
   }, []);
 
   // Helper function to download PDF directly
@@ -73,7 +78,6 @@ export default function ResultScreen() {
     try {
       const { generateAndSharePDF } = await import("@/utils/generatePdf");
       await generateAndSharePDF(input, result);
-      await saveToHistory(result);
       Alert.alert("Success!", t("saveDownload"));
     } catch (error) {
       console.error("PDF generation error:", error);
@@ -134,11 +138,36 @@ export default function ResultScreen() {
     };
   }, []);
 
-  const saveToHistory = async (item: any) => {
+  const saveToHistory = async (
+    inputData: CalculationInput,
+    resultData: CalculationResult,
+  ) => {
     try {
       const existing = await AsyncStorage.getItem("@import_history");
       const history = existing ? JSON.parse(existing) : [];
-      history.push({ ...item, date: new Date().toISOString() });
+      const entry = {
+        id: Date.now().toString(),
+        date: new Date().toISOString(),
+        input: {
+          originCountry: inputData.originCountry,
+          carPrice: inputData.carPrice,
+          officialFiscalValue: inputData.officialFiscalValue,
+          carAge: inputData.carAge,
+          co2Emissions: inputData.co2Emissions,
+          sellerType: inputData.sellerType,
+        },
+        result: {
+          totalCost: resultData.totalCost,
+          registrationTax: resultData.registrationTax,
+          itpTax: resultData.itpTax,
+          totalImportTaxes: resultData.totalImportTaxes,
+          taxRateApplied: resultData.taxRateApplied,
+          depreciationPercentage: resultData.depreciationPercentage,
+        },
+      };
+      history.unshift(entry); // newest first
+      // Limit to 50 entries
+      if (history.length > 50) history.pop();
       await AsyncStorage.setItem("@import_history", JSON.stringify(history));
     } catch (e) {
       console.error("Failed to save", e);
@@ -146,6 +175,12 @@ export default function ResultScreen() {
   };
 
   const handleSave = () => {
+    // Direct save for Pro users or if Ad is loaded (logic updated)
+    if (isPro) {
+      downloadPDF();
+      return;
+    }
+
     if (adLoaded && rewardedAd && !adError) {
       rewardedAd.show();
     } else if (adError) {

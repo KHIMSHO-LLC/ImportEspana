@@ -213,7 +213,7 @@ export function VehicleAutocomplete({
   return (
     <View style={styles.container}>
       {/* Brand Search */}
-      <View style={styles.inputGroup}>
+      <View style={[styles.inputGroup, { zIndex: 10 }]}>
         <View style={styles.labelRow}>
           <Text style={styles.label}>🚗 {t("brand")}</Text>
           <InfoTooltip text={t("vehicleSearchInfo")} />
@@ -271,7 +271,7 @@ export function VehicleAutocomplete({
 
       {/* Model Search */}
       {selectedBrand && (
-        <View style={styles.inputGroup}>
+        <View style={[styles.inputGroup, { zIndex: 5 }]}>
           <View style={styles.labelRow}>
             <Text style={styles.label}>🔧 {t("model")}</Text>
             <InfoTooltip text={t("vehicleSearchInfo")} />

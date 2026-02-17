@@ -16,7 +16,8 @@ export const translations = {
     private: "Private",
     calculate: "Calculate Total Cost",
     // Hints & Errors
-    privateSaleWarning: "⚠️ Private sales may incur 4% ITP tax.",
+    privateSaleWarning:
+      "⚠️ Private sales incur ITP tax (rate varies by region).",
     evDetected: "⚡ Electric Vehicle Detected - CO2 = 0",
     priceError: "Enter a valid price",
     co2Error: "Enter CO2 emissions",
@@ -60,6 +61,29 @@ export const translations = {
       "Buying from a Dealer avoids ITP tax. Buying from a Private Seller incurs 4% ITP.",
     fiscalInfo:
       "The official value assigned by the Spanish tax authority (BOE).",
+    // Daily limit
+    limitReachedTitle: "Daily Limit Reached",
+    limitReachedMessage:
+      "Free users can make 3 calculations per day. Upgrade to Pro for unlimited calculations!",
+    cancel: "Cancel",
+    goPro: "Go Pro",
+    calculationsRemaining: "calculations remaining today",
+    // History
+    deleteEntryTitle: "Delete Entry",
+    deleteEntryMessage: "Are you sure you want to delete this calculation?",
+    delete: "Delete",
+    clearHistoryTitle: "Clear All History",
+    clearHistoryMessage:
+      "This will delete all saved calculations. This action cannot be undone.\n\n⚠️ Note: If you delete the app, all history data will also be permanently removed.",
+    clearAll: "Clear All",
+    historyProTitle: "Pro Feature",
+    historyProMessage:
+      "Calculation history is available for Pro users. Upgrade to save and review your past calculations.",
+    historyDataWarning:
+      "History is stored locally. Deleting the app will remove all data.",
+    noHistory: "No calculations yet",
+    noHistoryMessage: "Your calculations will appear here automatically.",
+    selectRegion: "Region (Comunidad Autónoma)",
   },
   es: {
     originCountry: "País de Origen",
@@ -75,7 +99,7 @@ export const translations = {
     private: "Particular",
     calculate: "Calcular Coste Total",
     privateSaleWarning:
-      "⚠️ Las ventas entre particulares pueden estar sujetas a 4% de ITP.",
+      "⚠️ Las ventas entre particulares están sujetas al ITP (porcentaje según comunidad).",
     evDetected: "⚡ Vehículo eléctrico detectado - CO2 = 0",
     priceError: "Introduce un precio válido",
     co2Error: "Introduce las emisiones de CO2",
@@ -119,6 +143,27 @@ export const translations = {
     sellerTypeInfo:
       "Comprar a un Concesionario evita el ITP. Comprar a un Particular conlleva un 4% de ITP.",
     fiscalInfo: "El valor oficial asignado por la Agencia Tributaria (BOE).",
+    limitReachedTitle: "Límite diario alcanzado",
+    limitReachedMessage:
+      "Los usuarios gratuitos pueden hacer 3 cálculos por día. ¡Actualiza a Pro para cálculos ilimitados!",
+    cancel: "Cancelar",
+    goPro: "Hazte Pro",
+    calculationsRemaining: "cálculos restantes hoy",
+    deleteEntryTitle: "Eliminar entrada",
+    deleteEntryMessage: "¿Estás seguro de que deseas eliminar este cálculo?",
+    delete: "Eliminar",
+    clearHistoryTitle: "Borrar todo el historial",
+    clearHistoryMessage:
+      "Esto eliminará todos los cálculos guardados. Esta acción no se puede deshacer.\n\n⚠️ Nota: Si eliminas la app, todos los datos del historial también se borrarán permanentemente.",
+    clearAll: "Borrar todo",
+    historyProTitle: "Función Pro",
+    historyProMessage:
+      "El historial de cálculos está disponible para usuarios Pro. Actualiza para guardar y revisar tus cálculos.",
+    historyDataWarning:
+      "El historial se guarda localmente. Eliminar la app borrará todos los datos.",
+    noHistory: "Aún no hay cálculos",
+    noHistoryMessage: "Tus cálculos aparecerán aquí automáticamente.",
+    selectRegion: "Región (Comunidad Autónoma)",
   },
   ru: {
     originCountry: "Страна происхождения",
@@ -133,7 +178,8 @@ export const translations = {
     dealer: "Дилер",
     private: "Частник",
     calculate: "Рассчитать стоимость",
-    privateSaleWarning: "⚠️ Частные продажи могут облагаться налогом 4% ITP.",
+    privateSaleWarning:
+      "⚠️ Частные продажи облагаются налогом ITP (ставка зависит от региона).",
     evDetected: "⚡ Электромобиль обнаружен - CO2 = 0",
     priceError: "Введите корректную цену",
     co2Error: "Введите выбросы CO2",
@@ -174,6 +220,27 @@ export const translations = {
       "Покупка у дилера освобождает от ITP. Покупка у частника облагается 4% ITP.",
     fiscalInfo:
       "Официальная стоимость, установленная налоговой службой Испании (BOE).",
+    limitReachedTitle: "Дневной лимит достигнут",
+    limitReachedMessage:
+      "Бесплатные пользователи могут делать 3 расчёта в день. Обновитесь до Pro для безлимитных расчётов!",
+    cancel: "Отмена",
+    goPro: "Стать Pro",
+    calculationsRemaining: "расчётов осталось сегодня",
+    deleteEntryTitle: "Удалить запись",
+    deleteEntryMessage: "Вы уверены, что хотите удалить этот расчёт?",
+    delete: "Удалить",
+    clearHistoryTitle: "Очистить историю",
+    clearHistoryMessage:
+      "Все сохранённые расчёты будут удалены. Это действие нельзя отменить.\n\n⚠️ Примечание: При удалении приложения все данные истории будут безвозвратно потеряны.",
+    clearAll: "Очистить всё",
+    historyProTitle: "Функция Pro",
+    historyProMessage:
+      "История расчётов доступна для Pro-пользователей. Обновитесь, чтобы сохранять и просматривать расчёты.",
+    historyDataWarning:
+      "История хранится локально. При удалении приложения все данные будут потеряны.",
+    noHistory: "Расчётов пока нет",
+    noHistoryMessage: "Ваши расчёты будут появляться здесь автоматически.",
+    selectRegion: "Регион (автономное сообщество)",
   },
   de: {
     originCountry: "Herkunftsland",
@@ -188,7 +255,8 @@ export const translations = {
     dealer: "Händler",
     private: "Privat",
     calculate: "Gesamtkosten berechnen",
-    privateSaleWarning: "⚠️ Bei Privatverkauf können 4% ITP anfallen.",
+    privateSaleWarning:
+      "⚠️ Bei Privatverkauf fällt ITP an (Satz je nach Region).",
     evDetected: "⚡ Elektrofahrzeug erkannt - CO2 = 0",
     priceError: "Gültigen Preis eingeben",
     co2Error: "CO2-Emissionen eingeben",
@@ -230,6 +298,27 @@ export const translations = {
       "Kauf vom Händler vermeidet ITP-Steuer. Kauf von Privatperson: 4% ITP.",
     fiscalInfo:
       "Der von der spanischen Steuerbehörde (BOE) festgelegte offizielle Wert.",
+    limitReachedTitle: "Tageslimit erreicht",
+    limitReachedMessage:
+      "Gratisnutzer können 3 Berechnungen pro Tag durchführen. Upgrade auf Pro für unbegrenzte Berechnungen!",
+    cancel: "Abbrechen",
+    goPro: "Pro werden",
+    calculationsRemaining: "Berechnungen heute übrig",
+    deleteEntryTitle: "Eintrag löschen",
+    deleteEntryMessage: "Möchten Sie diese Berechnung wirklich löschen?",
+    delete: "Löschen",
+    clearHistoryTitle: "Gesamten Verlauf löschen",
+    clearHistoryMessage:
+      "Alle gespeicherten Berechnungen werden gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.\n\n⚠️ Hinweis: Wenn Sie die App löschen, gehen alle Verlaufsdaten ebenfalls dauerhaft verloren.",
+    clearAll: "Alles löschen",
+    historyProTitle: "Pro-Funktion",
+    historyProMessage:
+      "Der Berechnungsverlauf ist für Pro-Nutzer verfügbar. Upgraden Sie, um Ihre Berechnungen zu speichern und zu überprüfen.",
+    historyDataWarning:
+      "Der Verlauf wird lokal gespeichert. Das Löschen der App entfernt alle Daten.",
+    noHistory: "Noch keine Berechnungen",
+    noHistoryMessage: "Ihre Berechnungen erscheinen hier automatisch.",
+    selectRegion: "Region (Autonome Gemeinschaft)",
   },
   fr: {
     originCountry: "Pays d'origine",
@@ -245,7 +334,7 @@ export const translations = {
     private: "Particulier",
     calculate: "Calculer le coût total",
     privateSaleWarning:
-      "⚠️ Les ventes privées peuvent encourir 4% de taxe ITP.",
+      "⚠️ Les ventes privées sont soumises à la taxe ITP (taux selon la région).",
     evDetected: "⚡ Véhicule électrique détecté - CO2 = 0",
     priceError: "Entrez un prix valide",
     co2Error: "Entrez les émissions de CO2",
@@ -288,5 +377,26 @@ export const translations = {
       "L'achat chez un concessionnaire évite la taxe ITP. L'achat à un particulier encourt 4% d'ITP.",
     fiscalInfo:
       "La valeur officielle attribuée par l'administration fiscale espagnole (BOE).",
+    limitReachedTitle: "Limite quotidienne atteinte",
+    limitReachedMessage:
+      "Les utilisateurs gratuits peuvent effectuer 3 calculs par jour. Passez à Pro pour des calculs illimités !",
+    cancel: "Annuler",
+    goPro: "Passer Pro",
+    calculationsRemaining: "calculs restants aujourd'hui",
+    deleteEntryTitle: "Supprimer l'entrée",
+    deleteEntryMessage: "Êtes-vous sûr de vouloir supprimer ce calcul ?",
+    delete: "Supprimer",
+    clearHistoryTitle: "Effacer tout l'historique",
+    clearHistoryMessage:
+      "Tous les calculs enregistrés seront supprimés. Cette action est irréversible.\n\n⚠️ Remarque : Si vous supprimez l'application, toutes les données d'historique seront définitivement perdues.",
+    clearAll: "Tout effacer",
+    historyProTitle: "Fonction Pro",
+    historyProMessage:
+      "L'historique des calculs est disponible pour les utilisateurs Pro. Passez à Pro pour enregistrer et consulter vos calculs.",
+    historyDataWarning:
+      "L'historique est stocké localement. Supprimer l'application effacera toutes les données.",
+    noHistory: "Aucun calcul pour le moment",
+    noHistoryMessage: "Vos calculs apparaîtront ici automatiquement.",
+    selectRegion: "Région (Communauté autonome)",
   },
 };

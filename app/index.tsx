@@ -3,7 +3,10 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { VehicleAutocomplete } from "@/components/VehicleAutocomplete";
 import { AdUnits } from "@/constants/Ads";
 import { Colors } from "@/constants/Colors";
+import { DEFAULT_ITP_RATE, SPANISH_REGIONS } from "@/constants/ItpRates";
 import { useLanguage } from "@/context/LanguageContext";
+import { useRevenueCat } from "@/context/RevenueCatContext";
+import { useCalculationLimit } from "@/hooks/useCalculationLimit";
 import { CarAge, Country } from "@/types";
 import { useRouter } from "expo-router";
 import {
@@ -15,8 +18,9 @@ import {
   RotateCcw,
   User,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -31,6 +35,9 @@ import { BannerAd, BannerAdSize } from "react-native-google-mobile-ads";
 export default function InputScreen() {
   const router = useRouter();
   const { t } = useLanguage();
+  const { isPro } = useRevenueCat();
+  const { remaining, hasReachedLimit, incrementCount, FREE_DAILY_LIMIT } =
+    useCalculationLimit(isPro);
 
   // State
   const [originCountry, setOriginCountry] = useState<Country>("Germany");
@@ -40,6 +47,7 @@ export default function InputScreen() {
   const [age, setAge] = useState<CarAge>("3_years");
   const [sellerType, setSellerType] = useState<"dealer" | "private">("dealer");
   const [isElectric, setIsElectric] = useState(false);
+  const [selectedRegion, setSelectedRegion] = useState("Madrid");
   const [resetKey, setResetKey] = useState(0); // To force remount of autocomplete
 
   // Validation state
@@ -85,11 +93,33 @@ export default function InputScreen() {
     !validateCO2(co2) &&
     !validateFiscalValue(fiscalValue);
 
-  const handleCalculate = () => {
+  const handleCalculate = useCallback(() => {
     // Mark all as touched to show errors
     setTouched({ price: true, co2: true, fiscalValue: true });
 
     if (!isValid) return;
+
+    // Check daily limit for free users
+    if (hasReachedLimit) {
+      Alert.alert(
+        t("limitReachedTitle") || "Daily Limit Reached",
+        t("limitReachedMessage") ||
+          `Free users can make ${FREE_DAILY_LIMIT} calculations per day. Upgrade to Pro for unlimited calculations!`,
+        [
+          { text: t("cancel") || "Cancel", style: "cancel" },
+          {
+            text: t("goPro") || "Go Pro",
+            onPress: () => router.push("/paywall"),
+          },
+        ],
+      );
+      return;
+    }
+
+    // Increment counter for free users
+    if (!isPro) {
+      incrementCount();
+    }
 
     router.push({
       pathname: "/result",
@@ -100,9 +130,29 @@ export default function InputScreen() {
         carAge: age,
         co2Emissions: parseFloat(co2),
         sellerType,
+        itpRate:
+          sellerType === "private"
+            ? (SPANISH_REGIONS.find((r) => r.name === selectedRegion)?.rate ??
+              DEFAULT_ITP_RATE)
+            : undefined,
       },
     });
-  };
+  }, [
+    isValid,
+    hasReachedLimit,
+    isPro,
+    incrementCount,
+    originCountry,
+    price,
+    fiscalValue,
+    age,
+    co2,
+    sellerType,
+    selectedRegion,
+    router,
+    t,
+    FREE_DAILY_LIMIT,
+  ]);
 
   const handleReset = () => {
     setOriginCountry("Germany");
@@ -111,6 +161,7 @@ export default function InputScreen() {
     setCo2("");
     setAge("new");
     setSellerType("dealer");
+    setSelectedRegion("Madrid");
     setIsElectric(false);
     setTouched({ price: false, co2: false, fiscalValue: false });
     setResetKey((prev) => prev + 1); // Force autocomplete reset
@@ -379,6 +430,64 @@ export default function InputScreen() {
             {sellerType === "private" && (
               <Text style={styles.infoText}>{t("privateSaleWarning")}</Text>
             )}
+            {sellerType === "private" && (
+              <View style={{ marginTop: 12 }}>
+                <Text style={[styles.label, { marginBottom: 8 }]}>
+                  📍 {t("selectRegion") || "Region (Comunidad Autónoma)"}
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={{ marginHorizontal: -4 }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                      gap: 6,
+                      paddingHorizontal: 4,
+                    }}
+                  >
+                    {SPANISH_REGIONS.map((region) => (
+                      <Pressable
+                        key={region.name}
+                        onPress={() => setSelectedRegion(region.name)}
+                        style={[
+                          {
+                            paddingHorizontal: 12,
+                            paddingVertical: 8,
+                            borderRadius: 8,
+                            borderWidth: 1,
+                            borderColor:
+                              selectedRegion === region.name
+                                ? Colors.primary
+                                : Colors.border,
+                            backgroundColor:
+                              selectedRegion === region.name
+                                ? "#E6F0FF"
+                                : Colors.white,
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            fontWeight:
+                              selectedRegion === region.name ? "700" : "500",
+                            color:
+                              selectedRegion === region.name
+                                ? Colors.primary
+                                : Colors.text,
+                          }}
+                        >
+                          {region.label}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </ScrollView>
+              </View>
+            )}
           </View>
 
           <View style={{ height: 100 }} />
@@ -386,6 +495,21 @@ export default function InputScreen() {
 
         {/* Footer Buttons */}
         <View style={styles.footer}>
+          {!isPro && (
+            <Text
+              style={{
+                textAlign: "center",
+                fontSize: 12,
+                color: hasReachedLimit ? "#DC2626" : Colors.textLight,
+                marginBottom: 6,
+                fontWeight: hasReachedLimit ? "600" : "400",
+              }}
+            >
+              {hasReachedLimit
+                ? `⚠️ ${t("limitReachedTitle")}`
+                : `${remaining}/${FREE_DAILY_LIMIT} ${t("calculationsRemaining")}`}
+            </Text>
+          )}
           <View style={styles.buttonRow}>
             <Pressable
               style={styles.resetButton}
@@ -405,12 +529,14 @@ export default function InputScreen() {
       </KeyboardAvoidingView>
 
       {/* AdBanner */}
-      <View style={{ alignItems: "center", backgroundColor: "#fff" }}>
-        <BannerAd
-          unitId={AdUnits.BANNER}
-          size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-        />
-      </View>
+      {!isPro && (
+        <View style={{ alignItems: "center", backgroundColor: "#fff" }}>
+          <BannerAd
+            unitId={AdUnits.BANNER}
+            size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+          />
+        </View>
+      )}
     </View>
   );
 }

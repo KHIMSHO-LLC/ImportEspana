@@ -28,7 +28,7 @@ const TRANSPORT_COSTS = {
 
 const FEES = {
   DGT: 99.77,
-  ITV: 130.0,
+  ITV: 80.0,
   PLATES: 200.0,
 };
 
