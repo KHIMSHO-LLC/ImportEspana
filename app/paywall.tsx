@@ -1,5 +1,5 @@
 import { useRevenueCat } from "@/context/RevenueCatContext";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import { Alert, View } from "react-native";
 import RevenueCatUI from "react-native-purchases-ui";
@@ -17,6 +17,7 @@ export default function PaywallScreen() {
 
   return (
     <View style={{ flex: 1 }}>
+      <Stack.Screen options={{ headerShown: false, presentation: "modal" }} />
       <RevenueCatUI.Paywall
         onPurchaseCompleted={({ customerInfo }) => {
           console.log("Purchase completed:", customerInfo);

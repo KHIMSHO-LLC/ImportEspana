@@ -41,7 +41,15 @@ export default function ResultScreen() {
     carAge: params.carAge as any,
     co2Emissions: parseFloat(params.co2Emissions as string),
     sellerType: params.sellerType as any,
+    needsHomologation: params.needsHomologation === "true",
     itpRate: params.itpRate ? parseFloat(params.itpRate as string) : undefined,
+    importType: params.importType as any,
+    customsAgentFee: params.customsAgentFee
+      ? parseFloat(params.customsAgentFee as string)
+      : undefined,
+    transportCost: params.transportCost
+      ? parseFloat(params.transportCost as string)
+      : undefined,
   };
 
   const result = calculateImportCost(input);
@@ -160,6 +168,8 @@ export default function ResultScreen() {
           totalCost: resultData.totalCost,
           registrationTax: resultData.registrationTax,
           itpTax: resultData.itpTax,
+          duty: resultData.duty,
+          vat: resultData.vat,
           totalImportTaxes: resultData.totalImportTaxes,
           taxRateApplied: resultData.taxRateApplied,
           depreciationPercentage: resultData.depreciationPercentage,
@@ -240,17 +250,20 @@ export default function ResultScreen() {
         ]}
       >
         <Text style={styles.cardTitle}>💶 {t("breakdown")}</Text>
-
         <Row label={t("carPrice")} value={input.carPrice} color={Colors.text} />
         <Row
-          label="Transport" // TODO: Translate if needed or keep generic
+          label={t("transportCost")}
           value={result.transportCost}
           color={Colors.text}
         />
-
+        {(result.duty ?? 0) > 0 && (
+          <Row label={t("duty")} value={result.duty ?? 0} color={Colors.text} />
+        )}
+        {(result.vat ?? 0) > 0 && (
+          <Row label={t("vat")} value={result.vat ?? 0} color={Colors.text} />
+        )}
         <View style={styles.divider} />
         <Text style={styles.sectionTitle}>{t("taxesFees")}</Text>
-
         <Row
           label={t("registrationTax")}
           value={result.registrationTax}
@@ -264,11 +277,23 @@ export default function ResultScreen() {
             color={Colors.secondary}
           />
         )}
-
         <Row label={t("dgt")} value={result.dgtFee} color={Colors.text} />
         <Row label={t("itv")} value={result.itvFee} color={Colors.text} />
         <Row label={t("plates")} value={result.platesFee} color={Colors.text} />
-
+        {result.customsAgentFee ? (
+          <Row
+            label={t("customsAgent")}
+            value={result.customsAgentFee}
+            color={Colors.text}
+          />
+        ) : null}
+        {result.homologationFee ? (
+          <Row
+            label={t("homologation")}
+            value={result.homologationFee}
+            color={Colors.text}
+          />
+        ) : null}
         <View style={styles.divider} />
         <View style={styles.row}>
           <Text style={styles.labelBold}>{t("totalImportCost")}</Text>

@@ -74,7 +74,12 @@ export default function HistoryScreen() {
     try {
       const raw = await AsyncStorage.getItem("@import_history");
       if (raw) {
-        setHistory(JSON.parse(raw));
+        const parsed = JSON.parse(raw);
+        // Filter out corrupted entries
+        const valid = parsed.filter(
+          (item: any) => item && item.input && item.result,
+        );
+        setHistory(valid);
       }
     } catch (e) {
       console.error("Failed to load history:", e);
@@ -142,89 +147,93 @@ export default function HistoryScreen() {
   const formatCurrency = (n: number) =>
     `€${n.toLocaleString("de-DE", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 
-  const renderItem = ({ item }: { item: HistoryEntry }) => (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <View style={styles.cardHeaderLeft}>
-          <Text style={styles.totalCost}>
-            {formatCurrency(item.result.totalCost)}
-          </Text>
-          <Text style={styles.dateText}>
-            <Clock size={12} color={Colors.textLight} /> {formatDate(item.date)}
-          </Text>
-        </View>
-        <Pressable
-          onPress={() => deleteEntry(item.id)}
-          hitSlop={10}
-          style={styles.deleteButton}
-        >
-          <Trash2 size={18} color="#DC2626" />
-        </Pressable>
-      </View>
+  const renderItem = ({ item }: { item: HistoryEntry }) => {
+    if (!item?.result || !item?.input) return null;
 
-      <View style={styles.cardBody}>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>
-            <MapPin size={14} color={Colors.textLight} />{" "}
-            {FLAG_MAP[item.input.originCountry] || "🌍"}{" "}
-            {item.input.originCountry}
-          </Text>
-          <Text style={styles.detailValue}>
-            {formatCurrency(item.input.carPrice)}
-          </Text>
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={styles.cardHeaderLeft}>
+            <Text style={styles.totalCost}>
+              {formatCurrency(item.result.totalCost)}
+            </Text>
+            <Text style={styles.dateText}>
+              <Clock size={12} color={Colors.textLight} />{" "}
+              {formatDate(item.date)}
+            </Text>
+          </View>
+          <Pressable
+            onPress={() => deleteEntry(item.id)}
+            hitSlop={10}
+            style={styles.deleteButton}
+          >
+            <Trash2 size={18} color="#DC2626" />
+          </Pressable>
         </View>
 
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>
-            {t("registrationTax") || "Registration Tax"}
-          </Text>
-          <Text style={styles.detailValue}>
-            {formatCurrency(item.result.registrationTax)}
-          </Text>
-        </View>
-
-        {item.result.itpTax > 0 && (
+        <View style={styles.cardBody}>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>{t("itp") || "ITP"}</Text>
+            <Text style={styles.detailLabel}>
+              <MapPin size={14} color={Colors.textLight} />{" "}
+              {FLAG_MAP[item.input.originCountry] || "🌍"}{" "}
+              {item.input.originCountry}
+            </Text>
             <Text style={styles.detailValue}>
-              {formatCurrency(item.result.itpTax)}
+              {formatCurrency(item.input.carPrice)}
             </Text>
           </View>
-        )}
 
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>
-            {t("totalImportCost") || "Import Taxes"}
-          </Text>
-          <Text style={[styles.detailValue, { fontWeight: "700" }]}>
-            {formatCurrency(item.result.totalImportTaxes)}
-          </Text>
-        </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>
+              {t("registrationTax") || "Registration Tax"}
+            </Text>
+            <Text style={styles.detailValue}>
+              {formatCurrency(item.result.registrationTax)}
+            </Text>
+          </View>
 
-        <View style={styles.tagRow}>
-          <View style={styles.tag}>
-            <Text style={styles.tagText}>
-              {AGE_LABELS[item.input.carAge] || item.input.carAge}
+          {item.result.itpTax > 0 && (
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>{t("itp") || "ITP"}</Text>
+              <Text style={styles.detailValue}>
+                {formatCurrency(item.result.itpTax)}
+              </Text>
+            </View>
+          )}
+
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>
+              {t("totalImportCost") || "Import Taxes"}
+            </Text>
+            <Text style={[styles.detailValue, { fontWeight: "700" }]}>
+              {formatCurrency(item.result.totalImportTaxes)}
             </Text>
           </View>
-          <View style={styles.tag}>
-            <Text style={styles.tagText}>
-              CO₂: {item.input.co2Emissions} g/km
-            </Text>
-          </View>
-          <View style={styles.tag}>
-            <Text style={styles.tagText}>
-              {item.input.sellerType === "dealer" ? "🏢" : "🧑"}{" "}
-              {item.input.sellerType === "dealer"
-                ? t("dealer") || "Dealer"
-                : t("private") || "Private"}
-            </Text>
+
+          <View style={styles.tagRow}>
+            <View style={styles.tag}>
+              <Text style={styles.tagText}>
+                {AGE_LABELS[item.input.carAge] || item.input.carAge}
+              </Text>
+            </View>
+            <View style={styles.tag}>
+              <Text style={styles.tagText}>
+                CO₂: {item.input.co2Emissions} g/km
+              </Text>
+            </View>
+            <View style={styles.tag}>
+              <Text style={styles.tagText}>
+                {item.input.sellerType === "dealer" ? "🏢" : "🧑"}{" "}
+                {item.input.sellerType === "dealer"
+                  ? t("dealer") || "Dealer"
+                  : t("private") || "Private"}
+              </Text>
+            </View>
           </View>
         </View>
       </View>
-    </View>
-  );
-
+    );
+  };
   if (!isPro) {
     return (
       <View style={styles.proGate}>

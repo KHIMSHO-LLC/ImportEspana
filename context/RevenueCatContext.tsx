@@ -21,7 +21,7 @@ const RevenueCatContext = createContext<RevenueCatContextType | undefined>(
 );
 
 // ⚠️ TEMPORARY: Set to `true` to preview Pro mode. REVERT TO `false` BEFORE RELEASE!
-const FORCE_PRO_MODE = true;
+const FORCE_PRO_MODE = false;
 
 export const RevenueCatProvider: React.FC<{ children: React.ReactNode }> = ({
   children,

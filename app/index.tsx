@@ -1,3 +1,4 @@
+import { HistoryButton } from "@/components/HistoryButton";
 import { InfoTooltip } from "@/components/InfoTooltip";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { VehicleAutocomplete } from "@/components/VehicleAutocomplete";
@@ -7,20 +8,24 @@ import { DEFAULT_ITP_RATE, SPANISH_REGIONS } from "@/constants/ItpRates";
 import { useLanguage } from "@/context/LanguageContext";
 import { useRevenueCat } from "@/context/RevenueCatContext";
 import { useCalculationLimit } from "@/hooks/useCalculationLimit";
-import { CarAge, Country } from "@/types";
-import { useRouter } from "expo-router";
+import { CarAge, Country, ImportType } from "@/types";
+import { Stack, useRouter } from "expo-router";
 import {
   AlertCircle,
+  CheckSquare,
   Euro,
   Gauge,
   GraduationCap,
   MapPin,
   RotateCcw,
+  Ship,
+  Square,
   User,
 } from "lucide-react-native";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Animated,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -40,19 +45,36 @@ export default function InputScreen() {
     useCalculationLimit(isPro);
 
   // State
+  const [importType, setImportType] = useState<ImportType>("EU");
   const [originCountry, setOriginCountry] = useState<Country>("Germany");
   const [price, setPrice] = useState("");
+  const [transportCost, setTransportCost] = useState("");
+  const [needsHomologation, setNeedsHomologation] = useState(true);
   const [fiscalValue, setFiscalValue] = useState("");
   const [co2, setCo2] = useState("");
   const [age, setAge] = useState<CarAge>("3_years");
   const [sellerType, setSellerType] = useState<"dealer" | "private">("dealer");
   const [isElectric, setIsElectric] = useState(false);
+
   const [selectedRegion, setSelectedRegion] = useState("Madrid");
   const [resetKey, setResetKey] = useState(0); // To force remount of autocomplete
+
+  const switchAnim = useRef(new Animated.Value(0)).current;
+
+  // Animate switch when importType changes
+  useEffect(() => {
+    Animated.spring(switchAnim, {
+      toValue: importType === "EU" ? 0 : 1,
+      useNativeDriver: false, // animating layout property 'left'
+      friction: 8,
+      tension: 40,
+    }).start();
+  }, [importType]);
 
   // Validation state
   const [touched, setTouched] = useState({
     price: false,
+    transport: false,
     co2: false,
     fiscalValue: false,
   });
@@ -81,21 +103,32 @@ export default function InputScreen() {
     return null;
   };
 
+  const validateTransport = (value: string): string | null => {
+    if (importType === "EU") return null; // Optional for EU
+    const num = parseFloat(value);
+    if (!value || isNaN(num)) return "Enter transport cost";
+    if (num < 0) return "Invalid cost";
+    return null;
+  };
+
   // Validation errors
   const errors = {
     price: touched.price ? validatePrice(price) : null,
+    transport: touched.transport ? validateTransport(transportCost) : null,
     co2: touched.co2 ? validateCO2(co2) : null,
     fiscalValue: touched.fiscalValue ? validateFiscalValue(fiscalValue) : null,
   };
 
   const isValid =
     !validatePrice(price) &&
+    !validateTransport(transportCost) &&
+    !validateCO2(co2) &&
     !validateCO2(co2) &&
     !validateFiscalValue(fiscalValue);
 
   const handleCalculate = useCallback(() => {
     // Mark all as touched to show errors
-    setTouched({ price: true, co2: true, fiscalValue: true });
+    setTouched({ price: true, transport: true, co2: true, fiscalValue: false });
 
     if (!isValid) return;
 
@@ -125,6 +158,9 @@ export default function InputScreen() {
       pathname: "/result",
       params: {
         originCountry,
+        importType,
+        needsHomologation: needsHomologation ? "true" : "false",
+        transportCost: transportCost ? parseFloat(transportCost) : undefined,
         carPrice: parseFloat(price),
         officialFiscalValue: parseFloat(fiscalValue),
         carAge: age,
@@ -143,6 +179,9 @@ export default function InputScreen() {
     isPro,
     incrementCount,
     originCountry,
+    importType,
+    needsHomologation,
+    transportCost,
     price,
     fiscalValue,
     age,
@@ -155,15 +194,23 @@ export default function InputScreen() {
   ]);
 
   const handleReset = () => {
+    setImportType("EU");
     setOriginCountry("Germany");
     setPrice("");
+    setTransportCost("");
     setFiscalValue("");
     setCo2("");
     setAge("new");
     setSellerType("dealer");
     setSelectedRegion("Madrid");
     setIsElectric(false);
-    setTouched({ price: false, co2: false, fiscalValue: false });
+    setNeedsHomologation(true);
+    setTouched({
+      price: false,
+      transport: false,
+      co2: false,
+      fiscalValue: false,
+    });
     setResetKey((prev) => prev + 1); // Force autocomplete reset
   };
 
@@ -219,10 +266,24 @@ export default function InputScreen() {
     Italy: "🇮🇹",
     Belgium: "🇧🇪",
     Netherlands: "🇳🇱",
+    USA: "🇺🇸",
+    UAE: "🇦🇪",
+    Japan: "🇯🇵",
+    Korea: "🇰🇷",
   };
+
+  const euCountries: Country[] = [
+    "Germany",
+    "France",
+    "Italy",
+    "Belgium",
+    "Netherlands",
+  ];
+  const nonEuCountries: Country[] = ["USA", "UAE", "Japan", "Korea"];
 
   return (
     <View style={styles.container}>
+      <Stack.Screen options={{ headerLeft: () => <HistoryButton /> }} />
       {/* Language Switcher */}
       <LanguageSwitcher />
 
@@ -232,6 +293,56 @@ export default function InputScreen() {
         keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
+          {/* Import Type Toggle */}
+          <View style={styles.inputGroup}>
+            <View style={styles.segmentContainer}>
+              <Animated.View
+                style={[
+                  styles.segmentIndicator,
+                  {
+                    left: switchAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ["1%", "51%"],
+                    }),
+                  },
+                ]}
+              />
+              <Pressable
+                style={styles.segment}
+                onPress={() => {
+                  setImportType("EU");
+                  setOriginCountry("Germany");
+                }}
+              >
+                <Text
+                  style={[
+                    styles.segmentText,
+                    importType === "EU" && styles.segmentTextSelected,
+                  ]}
+                >
+                  {t("tabEU")}
+                </Text>
+              </Pressable>
+              <Pressable
+                style={styles.segment}
+                onPress={() => {
+                  setImportType("NonEU");
+                  setOriginCountry("USA");
+                  setNeedsHomologation(true);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.segmentText,
+                    importType === "NonEU" && styles.segmentTextSelected,
+                  ]}
+                >
+                  {t("tabNonEU")}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+
           {/* Origin Country */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>
@@ -239,15 +350,7 @@ export default function InputScreen() {
               <InfoTooltip text={t("originCountryInfo")} />
             </Text>
             <View style={styles.row}>
-              {(
-                [
-                  "Germany",
-                  "France",
-                  "Italy",
-                  "Belgium",
-                  "Netherlands",
-                ] as Country[]
-              ).map((c) => (
+              {(importType === "EU" ? euCountries : nonEuCountries).map((c) => (
                 <Pressable
                   key={c}
                   style={[
@@ -272,7 +375,8 @@ export default function InputScreen() {
           {/* Price */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>
-              <Euro size={16} color={Colors.primary} /> {t("carPrice")}
+              <Euro size={16} color={Colors.primary} />{" "}
+              {importType === "NonEU" ? t("invoicePrice") : t("carPrice")}
               <InfoTooltip text={t("carPriceInfo")} />
             </Text>
             <TextInput
@@ -291,11 +395,69 @@ export default function InputScreen() {
             )}
           </View>
 
+          {/* Transport Cost (Non-EU) */}
+          {importType === "NonEU" && (
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                <Ship size={16} color={Colors.primary} /> {t("transportCost")}
+              </Text>
+              <TextInput
+                style={[styles.input, errors.transport && styles.inputError]}
+                keyboardType="numeric"
+                placeholder="1500"
+                value={transportCost}
+                onChangeText={setTransportCost}
+                onBlur={() =>
+                  setTouched((prev) => ({ ...prev, transport: true }))
+                }
+              />
+              {errors.transport && (
+                <View style={styles.errorContainer}>
+                  <AlertCircle size={14} color="#DC2626" />
+                  <Text style={styles.errorText}>{errors.transport}</Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* Homologation Checkbox (Non-EU) */}
+          {importType === "NonEU" && (
+            <Pressable
+              style={styles.checkboxContainer}
+              onPress={() => setNeedsHomologation(!needsHomologation)}
+            >
+              <View style={{ marginRight: 12 }}>
+                {needsHomologation ? (
+                  <CheckSquare size={24} color={Colors.primary} />
+                ) : (
+                  <Square size={24} color={Colors.textLight} />
+                )}
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.checkboxLabel}>
+                  {t("homologation")}
+                  <InfoTooltip text={t("homologationInfo")} />
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: Colors.textLight,
+                    marginTop: 2,
+                  }}
+                >
+                  ~1500€
+                </Text>
+              </View>
+            </Pressable>
+          )}
+
           {/* Vehicle Search - Auto-fills Fiscal Value */}
-          <VehicleAutocomplete
-            key={resetKey}
-            onVehicleSelected={handleVehicleSelected}
-          />
+          <View style={{ zIndex: 10, marginBottom: 24 }}>
+            <VehicleAutocomplete
+              key={resetKey}
+              onVehicleSelected={handleVehicleSelected}
+            />
+          </View>
 
           {/* Show fiscal value if set */}
           {fiscalValue && !errors.fiscalValue && (
@@ -387,108 +549,110 @@ export default function InputScreen() {
             </ScrollView>
           </View>
 
-          {/* Seller Type */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              <User size={16} color={Colors.primary} /> {t("sellerType")}
-              <InfoTooltip text={t("sellerTypeInfo")} />
-            </Text>
-            <View style={styles.segmentContainer}>
-              <Pressable
-                style={[
-                  styles.segment,
-                  sellerType === "dealer" && styles.segmentSelected,
-                ]}
-                onPress={() => setSellerType("dealer")}
-              >
-                <Text
+          {/* Seller Type (Only for EU) */}
+          {importType === "EU" && (
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                <User size={16} color={Colors.primary} /> {t("sellerType")}
+                <InfoTooltip text={t("sellerTypeInfo")} />
+              </Text>
+              <View style={styles.segmentContainer}>
+                <Pressable
                   style={[
-                    styles.segmentText,
-                    sellerType === "dealer" && styles.segmentTextSelected,
+                    styles.segment,
+                    sellerType === "dealer" && styles.segmentSelected,
                   ]}
+                  onPress={() => setSellerType("dealer")}
                 >
-                  {t("dealer")}
-                </Text>
-              </Pressable>
-              <Pressable
-                style={[
-                  styles.segment,
-                  sellerType === "private" && styles.segmentSelected,
-                ]}
-                onPress={() => setSellerType("private")}
-              >
-                <Text
-                  style={[
-                    styles.segmentText,
-                    sellerType === "private" && styles.segmentTextSelected,
-                  ]}
-                >
-                  {t("private")}
-                </Text>
-              </Pressable>
-            </View>
-            {sellerType === "private" && (
-              <Text style={styles.infoText}>{t("privateSaleWarning")}</Text>
-            )}
-            {sellerType === "private" && (
-              <View style={{ marginTop: 12 }}>
-                <Text style={[styles.label, { marginBottom: 8 }]}>
-                  📍 {t("selectRegion") || "Region (Comunidad Autónoma)"}
-                </Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  style={{ marginHorizontal: -4 }}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      flexWrap: "wrap",
-                      gap: 6,
-                      paddingHorizontal: 4,
-                    }}
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      sellerType === "dealer" && styles.segmentTextSelected,
+                    ]}
                   >
-                    {SPANISH_REGIONS.map((region) => (
-                      <Pressable
-                        key={region.name}
-                        onPress={() => setSelectedRegion(region.name)}
-                        style={[
-                          {
-                            paddingHorizontal: 12,
-                            paddingVertical: 8,
-                            borderRadius: 8,
-                            borderWidth: 1,
-                            borderColor:
-                              selectedRegion === region.name
-                                ? Colors.primary
-                                : Colors.border,
-                            backgroundColor:
-                              selectedRegion === region.name
-                                ? "#E6F0FF"
-                                : Colors.white,
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 13,
-                            fontWeight:
-                              selectedRegion === region.name ? "700" : "500",
-                            color:
-                              selectedRegion === region.name
-                                ? Colors.primary
-                                : Colors.text,
-                          }}
-                        >
-                          {region.label}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                </ScrollView>
+                    {t("dealer")}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={[
+                    styles.segment,
+                    sellerType === "private" && styles.segmentSelected,
+                  ]}
+                  onPress={() => setSellerType("private")}
+                >
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      sellerType === "private" && styles.segmentTextSelected,
+                    ]}
+                  >
+                    {t("private")}
+                  </Text>
+                </Pressable>
               </View>
-            )}
-          </View>
+              {sellerType === "private" && (
+                <Text style={styles.infoText}>{t("privateSaleWarning")}</Text>
+              )}
+              {sellerType === "private" && (
+                <View style={{ marginTop: 12 }}>
+                  <Text style={[styles.label, { marginBottom: 8 }]}>
+                    📍 {t("selectRegion") || "Region (Comunidad Autónoma)"}
+                  </Text>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={{ marginHorizontal: -4 }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        flexWrap: "wrap",
+                        gap: 6,
+                        paddingHorizontal: 4,
+                      }}
+                    >
+                      {SPANISH_REGIONS.map((region) => (
+                        <Pressable
+                          key={region.name}
+                          onPress={() => setSelectedRegion(region.name)}
+                          style={[
+                            {
+                              paddingHorizontal: 12,
+                              paddingVertical: 8,
+                              borderRadius: 8,
+                              borderWidth: 1,
+                              borderColor:
+                                selectedRegion === region.name
+                                  ? Colors.primary
+                                  : Colors.border,
+                              backgroundColor:
+                                selectedRegion === region.name
+                                  ? "#E6F0FF"
+                                  : Colors.white,
+                            },
+                          ]}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 13,
+                              fontWeight:
+                                selectedRegion === region.name ? "700" : "500",
+                              color:
+                                selectedRegion === region.name
+                                  ? Colors.primary
+                                  : Colors.text,
+                            }}
+                          >
+                            {region.label}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </ScrollView>
+                </View>
+              )}
+            </View>
+          )}
 
           <View style={{ height: 100 }} />
         </ScrollView>
@@ -543,6 +707,22 @@ export default function InputScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 24,
+    backgroundColor: Colors.white,
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  checkboxLabel: {
+    fontSize: 16,
+    color: Colors.text,
+    flex: 1,
+  },
   scrollContent: { padding: 20 },
   inputGroup: { marginBottom: 24 },
   label: {
@@ -597,9 +777,30 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.border,
     borderRadius: 8,
     padding: 2,
+    position: "relative",
+    height: 48,
   },
-  segment: { flex: 1, padding: 10, alignItems: "center", borderRadius: 6 },
-  segmentSelected: { backgroundColor: Colors.white },
+  segmentIndicator: {
+    position: "absolute",
+    top: 2,
+    bottom: 2,
+    width: "48%",
+    backgroundColor: Colors.white,
+    borderRadius: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  segment: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 6,
+    zIndex: 1,
+  },
+  segmentSelected: { backgroundColor: "transparent" },
   segmentText: { color: Colors.text },
   segmentTextSelected: { fontWeight: "bold", color: Colors.primary },
   infoText: { marginTop: 8, color: "#D97706", fontSize: 12 },
@@ -607,8 +808,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#E6F4FE",
     padding: 16,
     borderRadius: 8,
-    marginBottom: 24,
     alignItems: "center",
+    zIndex: 1,
+    elevation: 2,
   },
   fiscalValueLabel: {
     fontSize: 14,
@@ -616,8 +818,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     flexDirection: "row",
     alignItems: "center",
-    zIndex: 10,
-    elevation: 2,
   },
   fiscalValueAmount: {
     fontSize: 24,

@@ -84,6 +84,17 @@ export const translations = {
     noHistory: "No calculations yet",
     noHistoryMessage: "Your calculations will appear here automatically.",
     selectRegion: "Region (Comunidad Autónoma)",
+    // Non-EU
+    tabEU: "Import to Spain (EU)",
+    tabNonEU: "Outside EU",
+    transportCost: "Transport Cost (€)",
+    duty: "Duty (10%)",
+    vat: "VAT (21%)",
+    customsAgent: "Customs Agent / DUA",
+    homologation: "Individual Homologation",
+    homologationInfo:
+      "Required for vehicles from outside the EU that lack a European Certificate of Conformity (COC).",
+    invoicePrice: "Invoice Price (€)",
   },
   es: {
     originCountry: "País de Origen",
@@ -164,6 +175,17 @@ export const translations = {
     noHistory: "Aún no hay cálculos",
     noHistoryMessage: "Tus cálculos aparecerán aquí automáticamente.",
     selectRegion: "Región (Comunidad Autónoma)",
+    // Non-EU
+    tabEU: "Importar a España (UE)",
+    tabNonEU: "Fuera de la UE",
+    transportCost: "Coste de Transporte (€)",
+    duty: "Arancel (10%)",
+    vat: "IVA (21%)",
+    customsAgent: "Agente de Aduanas / DUA",
+    homologation: "Homologación Individual",
+    homologationInfo:
+      "Necesaria para vehículos de fuera de la UE que no tienen Certificado de Conformidad Europeo (COC).",
+    invoicePrice: "Precio de Factura (€)",
   },
   ru: {
     originCountry: "Страна происхождения",
@@ -241,6 +263,17 @@ export const translations = {
     noHistory: "Расчётов пока нет",
     noHistoryMessage: "Ваши расчёты будут появляться здесь автоматически.",
     selectRegion: "Регион (автономное сообщество)",
+    // Non-EU
+    tabEU: "Импорт в Испанию (ЕС)",
+    tabNonEU: "Вне ЕС",
+    transportCost: "Стоимость транспорта (€)",
+    duty: "Пошлина (10%)",
+    vat: "НДС (21%)",
+    customsAgent: "Таможенный агент / DUA",
+    homologation: "Индивидуальная омологация",
+    homologationInfo:
+      "Необходима для автомобилей из-за пределов ЕС без европейского сертификата соответствия (COC).",
+    invoicePrice: "Цена по счету (€)",
   },
   de: {
     originCountry: "Herkunftsland",
@@ -319,6 +352,17 @@ export const translations = {
     noHistory: "Noch keine Berechnungen",
     noHistoryMessage: "Ihre Berechnungen erscheinen hier automatisch.",
     selectRegion: "Region (Autonome Gemeinschaft)",
+    // Non-EU
+    tabEU: "Import nach Spanien (EU)",
+    tabNonEU: "Außerhalb der EU",
+    transportCost: "Transportkosten (€)",
+    duty: "Zoll (10%)",
+    vat: "MwSt (21%)",
+    customsAgent: "Zollagent / DUA",
+    homologation: "Einzelabnahme",
+    homologationInfo:
+      "Erforderlich für Fahrzeuge von außerhalb der EU ohne europäische Konformitätsbescheinigung (COC).",
+    invoicePrice: "Rechnungspreis (€)",
   },
   fr: {
     originCountry: "Pays d'origine",
@@ -398,5 +442,16 @@ export const translations = {
     noHistory: "Aucun calcul pour le moment",
     noHistoryMessage: "Vos calculs apparaîtront ici automatiquement.",
     selectRegion: "Région (Communauté autonome)",
+    // Non-EU
+    tabEU: "Importer en Espagne (UE)",
+    tabNonEU: "Hors UE",
+    transportCost: "Coût de transport (€)",
+    duty: "Droits de douane (10%)",
+    vat: "TVA (21%)",
+    customsAgent: "Agent en douane / DUA",
+    homologation: "Homologation Individuelle",
+    homologationInfo:
+      "Requis pour les véhicules hors UE sans Certificat de Conformité Européen (COC).",
+    invoicePrice: "Prix de Facture (€)",
   },
 };

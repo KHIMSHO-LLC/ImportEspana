@@ -1,4 +1,4 @@
-import { CalculationInput, CalculationResult } from "../types";
+import { CalculationInput, CalculationResult, Country } from "../types";
 
 // Official Hacienda Depreciation Table (BOE)
 // Represents the % of value RETAINED by the car.
@@ -18,18 +18,23 @@ const DEPRECIATION_TABLE = {
   "12_plus_years": 0.1, // More than 12 years: 10%
 };
 
-const TRANSPORT_COSTS = {
+const TRANSPORT_COSTS: Record<Country, number> = {
   Germany: 800,
   France: 600,
   Italy: 900,
   Belgium: 850,
   Netherlands: 850,
+  USA: 1500,
+  UAE: 1200,
+  Japan: 2000,
+  Korea: 2000,
 };
 
 const FEES = {
   DGT: 99.77,
   ITV: 80.0,
   PLATES: 200.0,
+  HOMOLOGATION: 1600.0, // Avg cost for individual homologation (range 500-2500)
 };
 
 export function calculateImportCost(
@@ -49,19 +54,39 @@ export function calculateImportCost(
 
   const registrationTax = taxBase * taxRate;
 
-  // 3. ITP (Impuesto de Transmisiones Patrimoniales)
-  // Only for Private Sellers. Uses the Tax Base (not purchase price) in most regions,
-  // though some argue Purchase Price. Hacienda standard is usually the higher of the two,
-  // but for import calculation, `taxBase` (Tablas Hacienda) is the standard reference.
-  const rateITP = input.itpRate ?? 0.04; // Default 4%
-  const itpTax = input.sellerType === "private" ? taxBase * rateITP : 0;
+  // 4. Non-EU Taxes (Duty + VAT)
+  let duty = 0;
+  let vat = 0;
+  let itpTax = 0;
 
-  // 4. Logistics & Fees
+  if (input.importType === "NonEU") {
+    // Duty = 10% of (CIF Value = Price + Transport)
+    const cifValue = input.carPrice + (input.transportCost || 0);
+    duty = cifValue * 0.1;
+
+    // VAT = 21% of (CIF + Duty)
+    const vatBase = cifValue + duty;
+    vat = vatBase * 0.21;
+
+    // No ITP for Non-EU imports (VAT applies instead)
+    itpTax = 0;
+  } else {
+    // EU Logic: ITP for Private Sellers
+    const rateITP = input.itpRate ?? 0.04; // Default 4%
+    itpTax = input.sellerType === "private" ? taxBase * rateITP : 0;
+  }
+
+  // 5. Logistics & Fees
   const transport = input.transportCost ?? TRANSPORT_COSTS[input.originCountry];
-  const totalFees = FEES.DGT + FEES.ITV + FEES.PLATES;
+  const totalFees =
+    FEES.DGT +
+    FEES.ITV +
+    FEES.PLATES +
+    (input.customsAgentFee || 0) +
+    (input.needsHomologation ? FEES.HOMOLOGATION : 0);
 
-  // 5. Totals
-  const totalImportTaxes = registrationTax + itpTax + totalFees;
+  // 6. Totals
+  const totalImportTaxes = registrationTax + itpTax + duty + vat + totalFees;
   const totalCost = input.carPrice + totalImportTaxes + transport;
 
   return {
@@ -69,6 +94,10 @@ export function calculateImportCost(
     taxBase,
     registrationTax,
     itpTax,
+    duty,
+    vat,
+    customsAgentFee: input.customsAgentFee,
+    homologationFee: input.needsHomologation ? FEES.HOMOLOGATION : 0,
     dgtFee: FEES.DGT,
     itvFee: FEES.ITV,
     platesFee: FEES.PLATES,

@@ -3,7 +3,14 @@ export type Country =
   | "France"
   | "Italy"
   | "Belgium"
-  | "Netherlands";
+  | "Belgium"
+  | "Netherlands"
+  | "USA"
+  | "UAE"
+  | "Japan"
+  | "Korea";
+
+export type ImportType = "EU" | "NonEU";
 
 export type CarAge =
   | "new"
@@ -29,6 +36,9 @@ export interface CalculationInput {
   sellerType: "dealer" | "private";
   transportCost?: number;
   itpRate?: number; // Regional Transfer Tax Rate (Default 0.04)
+  importType?: ImportType;
+  customsAgentFee?: number;
+  needsHomologation?: boolean;
 }
 
 export interface CalculationResult {
@@ -44,4 +54,8 @@ export interface CalculationResult {
   totalCost: number; // Final Check to write
   taxRateApplied: number;
   depreciationPercentage: number; // The % value RETAINED (e.g., 0.84)
+  duty?: number; // Arancel (10% for Non-EU)
+  vat?: number; // IVA (21% for Non-EU)
+  customsAgentFee?: number;
+  homologationFee?: number;
 }
