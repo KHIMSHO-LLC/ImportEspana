@@ -352,28 +352,39 @@ export default function ResultScreen() {
         ]}
       >
         <Pressable
+          disabled={!isPro && !adLoaded && !adError}
           style={({ pressed }) => [
             styles.saveButton,
             pressed && { transform: [{ scale: 0.97 }] },
+            !isPro && !adLoaded && !adError && { opacity: 0.6 },
           ]}
           onPress={handleSave}
         >
           <LinearGradient
-            colors={[Colors.secondary, "#FFD700"]}
+            colors={
+              !isPro && !adLoaded && !adError
+                ? ["#E5E7EB", "#D1D5DB"] // Gray when loading
+                : [Colors.secondary, "#FFD700"] // Gold when ready
+            }
             style={styles.saveButtonGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           >
-            <Save color="#000" size={20} />
-            <Text style={styles.saveButtonText}>{t("saveDownload")}</Text>
-            {!adLoaded && (
-              <Text style={{ fontSize: 10, color: "#444" }}>
-                {t("loadingAd")}
+            {!isPro && !adLoaded && !adError ? (
+              <Text style={[styles.saveButtonText, { color: "#6B7280" }]}>
+                {t("loadingAd")}...
               </Text>
+            ) : (
+              <>
+                <Save color="#000" size={20} />
+                <Text style={styles.saveButtonText}>{t("saveDownload")}</Text>
+              </>
             )}
           </LinearGradient>
         </Pressable>
-        <Text style={styles.adHint}>{t("watchAd")}</Text>
+        {!isPro && adLoaded && (
+          <Text style={styles.adHint}>{t("watchAd")}</Text>
+        )}
       </Animated.View>
     </ScrollView>
   );

@@ -54,10 +54,13 @@ function ProButton() {
   );
 }
 
+import { PrivacyConsent } from "@/components/PrivacyConsent";
+
 export default function RootLayout() {
   return (
     <LanguageProvider>
       <RevenueCatProvider>
+        <PrivacyConsent />
         <StatusBar style="dark" />
         <Stack
           screenOptions={{
