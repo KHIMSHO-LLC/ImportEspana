@@ -38,7 +38,7 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.giokhimsho.ImportEspana",
-      "permissions": ["com.android.vending.BILLING"]
+      "permissions": []
     },
     "web": {
       "output": "static",
