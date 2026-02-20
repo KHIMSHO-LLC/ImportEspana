@@ -35,7 +35,13 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { BannerAd, BannerAdSize } from "react-native-google-mobile-ads";
+import {
+  AdEventType,
+  BannerAd,
+  BannerAdSize,
+  RewardedAd,
+  RewardedAdEventType,
+} from "react-native-google-mobile-ads";
 
 export default function InputScreen() {
   const router = useRouter();
@@ -60,6 +66,89 @@ export default function InputScreen() {
   const [resetKey, setResetKey] = useState(0); // To force remount of autocomplete
 
   const switchAnim = useRef(new Animated.Value(0)).current;
+
+  // Rewarded Ad State (for Non-EU calculations)
+  const [adLoaded, setAdLoaded] = useState(false);
+  const [rewardedAd, setRewardedAd] = useState<RewardedAd | null>(null);
+  const [adError, setAdError] = useState(false);
+  const rewardEarned = useRef(false);
+  // Store navigation params temporarily while ad plays
+  const pendingNavigationParams = useRef<any>(null);
+
+  useEffect(() => {
+    // We only need the ad loaded if they might use Non-EU, but we load it proactively
+    if (isPro) return;
+
+    let loadTimeout: ReturnType<typeof setTimeout>;
+
+    const ad = RewardedAd.createForAdRequest(AdUnits.REWARDED, {
+      requestNonPersonalizedAdsOnly: true,
+    });
+
+    const unsubscribeLoaded = ad.addAdEventListener(
+      RewardedAdEventType.LOADED,
+      () => {
+        clearTimeout(loadTimeout);
+        setAdLoaded(true);
+        setAdError(false);
+      },
+    );
+
+    const unsubscribeError = ad.addAdEventListener(
+      AdEventType.ERROR,
+      (error) => {
+        clearTimeout(loadTimeout);
+        console.log("Ad failed to load:", error);
+        setAdError(true);
+        setAdLoaded(false);
+      },
+    );
+
+    const unsubscribeEarned = ad.addAdEventListener(
+      RewardedAdEventType.EARNED_REWARD,
+      () => {
+        rewardEarned.current = true;
+      },
+    );
+
+    const unsubscribeClosed = ad.addAdEventListener(AdEventType.CLOSED, () => {
+      setAdLoaded(false);
+      if (rewardEarned.current && pendingNavigationParams.current) {
+        // Ad watched successfully, proceed to results
+        router.push(pendingNavigationParams.current);
+        rewardEarned.current = false;
+        pendingNavigationParams.current = null;
+      } else {
+        // User closed ad early or an error occurred
+        Alert.alert(
+          "Calculation Cancelled",
+          "You must watch the full ad to calculate Non-EU imports.",
+        );
+      }
+      ad.load(); // Load next ad
+
+      // Start timeout for the next ad load
+      loadTimeout = setTimeout(() => {
+        setAdError(true);
+      }, 3500);
+    });
+
+    ad.load();
+    setRewardedAd(ad);
+
+    // Initial timeout
+    loadTimeout = setTimeout(() => {
+      setAdError(true);
+    }, 3500);
+
+    return () => {
+      clearTimeout(loadTimeout);
+      unsubscribeLoaded();
+      unsubscribeError();
+      unsubscribeEarned();
+      unsubscribeClosed();
+    };
+  }, [isPro]); // Removed router from dependencies
 
   // Animate switch when importType changes
   useEffect(() => {
@@ -138,13 +227,15 @@ export default function InputScreen() {
         t("limitReachedTitle") || "Daily Limit Reached",
         t("limitReachedMessage") ||
           `Free users can make ${FREE_DAILY_LIMIT} calculations per day. Upgrade to Pro for unlimited calculations!`,
-        [
-          { text: t("cancel") || "Cancel", style: "cancel" },
-          {
-            text: t("goPro") || "Go Pro",
-            onPress: () => router.push("/paywall"),
-          },
-        ],
+        Platform.OS === "android"
+          ? [{ text: "OK", style: "cancel" }]
+          : [
+              { text: t("cancel") || "Cancel", style: "cancel" },
+              {
+                text: t("goPro") || "Go Pro",
+                onPress: () => router.push("/paywall"),
+              },
+            ],
       );
       return;
     }
@@ -154,7 +245,7 @@ export default function InputScreen() {
       incrementCount();
     }
 
-    router.push({
+    const params = {
       pathname: "/result",
       params: {
         originCountry,
@@ -172,7 +263,30 @@ export default function InputScreen() {
               DEFAULT_ITP_RATE)
             : undefined,
       },
-    });
+    };
+
+    // If it's a Non-EU import and the user is not Pro, require a Rewarded Ad
+    if (importType === "NonEU" && !isPro) {
+      if (adLoaded && rewardedAd && !adError) {
+        pendingNavigationParams.current = params;
+        rewardedAd.show();
+        return; // Navigation happens in AdEventType.CLOSED listener
+      } else if (adError) {
+        // Fallback: if ad failed to load, just let them through
+        console.log("Ad error fallback - proceeding to results");
+        router.push(params as any);
+        return;
+      } else {
+        Alert.alert(
+          t("loadingAd") || "Loading Ad",
+          "Please wait a moment for the ad to load.",
+        );
+        return;
+      }
+    }
+
+    // Default flow (EU import or Pro user)
+    router.push(params as any);
   }, [
     isValid,
     hasReachedLimit,
@@ -683,10 +797,26 @@ export default function InputScreen() {
               <RotateCcw size={20} color={Colors.textLight} />
             </Pressable>
             <Pressable
-              style={[styles.button, !isValid && styles.buttonDisabled]}
+              style={[
+                styles.button,
+                (!isValid ||
+                  (importType === "NonEU" &&
+                    !isPro &&
+                    !adLoaded &&
+                    !adError)) &&
+                  styles.buttonDisabled,
+              ]}
+              disabled={
+                !isValid ||
+                (importType === "NonEU" && !isPro && !adLoaded && !adError)
+              }
               onPress={handleCalculate}
             >
-              <Text style={styles.buttonText}>{t("calculate")}</Text>
+              <Text style={styles.buttonText}>
+                {importType === "NonEU" && !isPro && !adLoaded && !adError
+                  ? t("loadingAd") || "Loading Ad..."
+                  : t("calculate") || "Calculate"}
+              </Text>
             </Pressable>
           </View>
         </View>

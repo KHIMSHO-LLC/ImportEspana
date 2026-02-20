@@ -1,10 +1,11 @@
+import { AdUnits } from "@/constants/Ads";
 import { Colors } from "@/constants/Colors";
 import { useLanguage } from "@/context/LanguageContext";
 import { useRevenueCat } from "@/context/RevenueCatContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { Clock, MapPin, Trash2 } from "lucide-react-native";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -13,6 +14,13 @@ import {
   Text,
   View,
 } from "react-native";
+import {
+  AdEventType,
+  BannerAd,
+  BannerAdSize,
+  RewardedAd,
+  RewardedAdEventType,
+} from "react-native-google-mobile-ads";
 
 interface HistoryEntry {
   id: string;
@@ -66,9 +74,86 @@ export default function HistoryScreen() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Rewarded Ad State
+  const [isHistoryUnlocked, setIsHistoryUnlocked] = useState(false);
+  const [adLoaded, setAdLoaded] = useState(false);
+  const [rewardedAd, setRewardedAd] = useState<RewardedAd | null>(null);
+  const [adError, setAdError] = useState(false);
+  const rewardEarned = useRef(false);
+
   useEffect(() => {
     loadHistory();
   }, []);
+
+  useEffect(() => {
+    // If Pro, unlock immediately
+    if (isPro) {
+      setIsHistoryUnlocked(true);
+      return;
+    }
+
+    const ad = RewardedAd.createForAdRequest(AdUnits.REWARDED, {
+      requestNonPersonalizedAdsOnly: true,
+    });
+
+    const unsubscribeLoaded = ad.addAdEventListener(
+      RewardedAdEventType.LOADED,
+      () => {
+        setAdLoaded(true);
+        setAdError(false);
+      },
+    );
+
+    const unsubscribeError = ad.addAdEventListener(
+      AdEventType.ERROR,
+      (error) => {
+        console.log("Ad failed to load:", error);
+        setAdError(true);
+        setAdLoaded(false);
+      },
+    );
+
+    const unsubscribeEarned = ad.addAdEventListener(
+      RewardedAdEventType.EARNED_REWARD,
+      () => {
+        rewardEarned.current = true;
+      },
+    );
+
+    const unsubscribeClosed = ad.addAdEventListener(AdEventType.CLOSED, () => {
+      setAdLoaded(false);
+      if (rewardEarned.current) {
+        setIsHistoryUnlocked(true);
+        rewardEarned.current = false;
+      } else {
+        ad.load();
+      }
+    });
+
+    ad.load();
+    setRewardedAd(ad);
+
+    return () => {
+      unsubscribeLoaded();
+      unsubscribeError();
+      unsubscribeEarned();
+      unsubscribeClosed();
+    };
+  }, [isPro]);
+
+  const handleWatchAd = () => {
+    if (adLoaded && rewardedAd && !adError) {
+      rewardedAd.show();
+    } else if (adError) {
+      // Fallback if ad fails completely
+      setIsHistoryUnlocked(true);
+    } else {
+      Alert.alert(
+        t("loadingAd") || "Loading Ad",
+        "Please wait a moment for the ad to load.",
+      );
+    }
+  };
 
   const loadHistory = async () => {
     try {
@@ -234,22 +319,32 @@ export default function HistoryScreen() {
       </View>
     );
   };
-  if (!isPro) {
+
+  if (!isHistoryUnlocked) {
     return (
-      <View style={styles.proGate}>
-        <Text style={styles.proGateIcon}>🔒</Text>
-        <Text style={styles.proGateTitle}>
-          {t("historyProTitle") || "Pro Feature"}
+      <View style={styles.adGate}>
+        <Text style={styles.adGateIcon}>🎬</Text>
+        <Text style={styles.adGateTitle}>
+          {t("historyUnlockTitle") || "Unlock History"}
         </Text>
-        <Text style={styles.proGateText}>
-          {t("historyProMessage") ||
-            "Calculation history is available for Pro users. Upgrade to save and review your past calculations."}
+        <Text style={styles.adGateText}>
+          {t("historyUnlockMessage") ||
+            "Watch a short video ad to view your past calculations."}
         </Text>
         <Pressable
-          style={styles.proButton}
-          onPress={() => router.push("/paywall")}
+          disabled={!adLoaded && !adError}
+          style={({ pressed }) => [
+            styles.adButton,
+            pressed && { transform: [{ scale: 0.97 }] },
+            !adLoaded && !adError && { opacity: 0.6 },
+          ]}
+          onPress={handleWatchAd}
         >
-          <Text style={styles.proButtonText}>{t("goPro") || "Go Pro"}</Text>
+          <Text style={styles.adButtonText}>
+            {!adLoaded && !adError
+              ? t("loadingAd") || "Loading Ad..."
+              : t("watchAdToUnlock") || "Watch Ad to Unlock"}
+          </Text>
         </Pressable>
       </View>
     );
@@ -257,6 +352,16 @@ export default function HistoryScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Ad Banner */}
+      {!isPro && (
+        <View style={{ alignItems: "center", backgroundColor: "#fff" }}>
+          <BannerAd
+            unitId={AdUnits.BANNER}
+            size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+          />
+        </View>
+      )}
+
       {/* Data Loss Warning Banner */}
       <View style={styles.warningBanner}>
         <Text style={styles.warningText}>
@@ -429,37 +534,37 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
-  proGate: {
+  adGate: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 40,
     backgroundColor: Colors.background,
   },
-  proGateIcon: {
+  adGateIcon: {
     fontSize: 56,
     marginBottom: 16,
   },
-  proGateTitle: {
+  adGateTitle: {
     fontSize: 22,
     fontWeight: "800",
     color: Colors.text,
     marginBottom: 8,
   },
-  proGateText: {
+  adGateText: {
     fontSize: 15,
     color: Colors.textLight,
     textAlign: "center",
     marginBottom: 24,
     lineHeight: 22,
   },
-  proButton: {
+  adButton: {
     backgroundColor: Colors.primary,
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 12,
   },
-  proButtonText: {
+  adButtonText: {
     color: Colors.white,
     fontSize: 16,
     fontWeight: "700",

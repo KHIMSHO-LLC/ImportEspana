@@ -1,7 +1,7 @@
 import { Colors } from "@/constants/Colors";
 import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Image, Pressable, Text, View } from "react-native";
+import { Image, Platform, Pressable, Text, View } from "react-native";
 
 import { LanguageProvider } from "@/context/LanguageContext";
 import { RevenueCatProvider, useRevenueCat } from "@/context/RevenueCatContext";
@@ -68,7 +68,8 @@ export default function RootLayout() {
             headerTintColor: Colors.white,
             headerTitleStyle: { fontWeight: "bold" },
             contentStyle: { backgroundColor: Colors.background },
-            headerRight: () => <ProButton />,
+            headerRight: () =>
+              Platform.OS === "android" ? null : <ProButton />,
           }}
         >
           <Stack.Screen

@@ -83,6 +83,10 @@ export const translations = {
       "History is stored locally. Deleting the app will remove all data.",
     noHistory: "No calculations yet",
     noHistoryMessage: "Your calculations will appear here automatically.",
+    historyUnlockTitle: "Unlock History",
+    historyUnlockMessage:
+      "Watch a short video ad to view your past calculations.",
+    watchAdToUnlock: "Watch Ad to Unlock",
     selectRegion: "Region (Comunidad Autónoma)",
     // Non-EU
     tabEU: "Import to Spain (EU)",
@@ -174,6 +178,10 @@ export const translations = {
       "El historial se guarda localmente. Eliminar la app borrará todos los datos.",
     noHistory: "Aún no hay cálculos",
     noHistoryMessage: "Tus cálculos aparecerán aquí automáticamente.",
+    historyUnlockTitle: "Desbloquear Historial",
+    historyUnlockMessage:
+      "Mira un anuncio corto en video para ver tus cálculos pasados.",
+    watchAdToUnlock: "Ver anuncio para desbloquear",
     selectRegion: "Región (Comunidad Autónoma)",
     // Non-EU
     tabEU: "Importar a España (UE)",
@@ -262,6 +270,10 @@ export const translations = {
       "История хранится локально. При удалении приложения все данные будут потеряны.",
     noHistory: "Расчётов пока нет",
     noHistoryMessage: "Ваши расчёты будут появляться здесь автоматически.",
+    historyUnlockTitle: "Разблокировать историю",
+    historyUnlockMessage:
+      "Посмотрите короткое видео, чтобы посмотреть прошлые расчеты.",
+    watchAdToUnlock: "Посмотреть рекламу",
     selectRegion: "Регион (автономное сообщество)",
     // Non-EU
     tabEU: "Импорт в Испанию (ЕС)",
@@ -351,6 +363,10 @@ export const translations = {
       "Der Verlauf wird lokal gespeichert. Das Löschen der App entfernt alle Daten.",
     noHistory: "Noch keine Berechnungen",
     noHistoryMessage: "Ihre Berechnungen erscheinen hier automatisch.",
+    historyUnlockTitle: "Verlauf entsperren",
+    historyUnlockMessage:
+      "Sehen Sie sich ein kurzes Video an, um Ihre vergangenen Berechnungen zu sehen.",
+    watchAdToUnlock: "Werbung ansehen",
     selectRegion: "Region (Autonome Gemeinschaft)",
     // Non-EU
     tabEU: "Import nach Spanien (EU)",
@@ -441,6 +457,10 @@ export const translations = {
       "L'historique est stocké localement. Supprimer l'application effacera toutes les données.",
     noHistory: "Aucun calcul pour le moment",
     noHistoryMessage: "Vos calculs apparaîtront ici automatiquement.",
+    historyUnlockTitle: "Débloquer l'historique",
+    historyUnlockMessage:
+      "Regardez une courte vidéo pour voir vos calculs passés.",
+    watchAdToUnlock: "Regarder la pub",
     selectRegion: "Région (Communauté autonome)",
     // Non-EU
     tabEU: "Importer en Espagne (UE)",

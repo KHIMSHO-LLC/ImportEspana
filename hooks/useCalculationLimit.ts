@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
+import { Platform } from "react-native";
 
 const STORAGE_KEY = "daily_calculations";
 const FREE_DAILY_LIMIT = 5;
@@ -18,7 +19,12 @@ export function useCalculationLimit(isPro: boolean) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   const remaining = Math.max(0, FREE_DAILY_LIMIT - dailyCount);
-  const hasReachedLimit = !isPro && dailyCount >= FREE_DAILY_LIMIT;
+
+  // Disable limit on Android since there is no Pro plan
+  const hasReachedLimit =
+    Platform.OS === "android"
+      ? false
+      : !isPro && dailyCount >= FREE_DAILY_LIMIT;
 
   // Load the current count on mount
   useEffect(() => {

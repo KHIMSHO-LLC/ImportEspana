@@ -38,7 +38,7 @@ export const RevenueCatProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const initRevenueCat = async () => {
     try {
-      if (Platform.OS === "android" || Platform.OS === "ios") {
+      if (Platform.OS === "ios") {
         await Purchases.configure({ apiKey: REVENUECAT_API_KEY });
 
         // Get initial customer info
