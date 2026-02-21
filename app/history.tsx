@@ -64,7 +64,6 @@ export default function HistoryScreen() {
   const { isPro } = useRevenueCat();
   const router = useRouter();
   const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadHistory();
@@ -83,8 +82,6 @@ export default function HistoryScreen() {
       }
     } catch (e) {
       console.error("Failed to load history:", e);
-    } finally {
-      setIsLoading(false);
     }
   };
 

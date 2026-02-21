@@ -6,13 +6,18 @@ import { CalculationInput, CalculationResult } from "@/types";
 import { calculateImportCost } from "@/utils/taxCalculator";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { Save } from "lucide-react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Alert,
   Animated,
-  Dimensions,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -25,34 +30,36 @@ import {
   RewardedAdEventType,
 } from "react-native-google-mobile-ads";
 
-const screenWidth = Dimensions.get("window").width;
-
 export default function ResultScreen() {
-  const router = useRouter();
   const params = useLocalSearchParams();
   const { t } = useLanguage();
   const { isPro } = useRevenueCat();
 
   // Transform params back to typed input
-  const input: CalculationInput = {
-    originCountry: params.originCountry as any,
-    carPrice: parseFloat(params.carPrice as string),
-    officialFiscalValue: parseFloat(params.officialFiscalValue as string),
-    carAge: params.carAge as any,
-    co2Emissions: parseFloat(params.co2Emissions as string),
-    sellerType: params.sellerType as any,
-    needsHomologation: params.needsHomologation === "true",
-    itpRate: params.itpRate ? parseFloat(params.itpRate as string) : undefined,
-    importType: params.importType as any,
-    customsAgentFee: params.customsAgentFee
-      ? parseFloat(params.customsAgentFee as string)
-      : undefined,
-    transportCost: params.transportCost
-      ? parseFloat(params.transportCost as string)
-      : undefined,
-  };
+  const input: CalculationInput = useMemo(
+    () => ({
+      originCountry: params.originCountry as any,
+      carPrice: parseFloat(params.carPrice as string),
+      officialFiscalValue: parseFloat(params.officialFiscalValue as string),
+      carAge: params.carAge as any,
+      co2Emissions: parseFloat(params.co2Emissions as string),
+      sellerType: params.sellerType as any,
+      needsHomologation: params.needsHomologation === "true",
+      itpRate: params.itpRate
+        ? parseFloat(params.itpRate as string)
+        : undefined,
+      importType: params.importType as any,
+      customsAgentFee: params.customsAgentFee
+        ? parseFloat(params.customsAgentFee as string)
+        : undefined,
+      transportCost: params.transportCost
+        ? parseFloat(params.transportCost as string)
+        : undefined,
+    }),
+    [params],
+  );
 
-  const result = calculateImportCost(input);
+  const result = useMemo(() => calculateImportCost(input), [input]);
 
   const [adLoaded, setAdLoaded] = useState(false);
   const [rewardedAd, setRewardedAd] = useState<RewardedAd | null>(null);
@@ -61,6 +68,44 @@ export default function ResultScreen() {
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
+
+  const saveToHistory = useCallback(
+    async (inputData: CalculationInput, resultData: CalculationResult) => {
+      try {
+        const existing = await AsyncStorage.getItem("@import_history");
+        const history = existing ? JSON.parse(existing) : [];
+        const entry = {
+          id: Date.now().toString(),
+          date: new Date().toISOString(),
+          input: {
+            originCountry: inputData.originCountry,
+            carPrice: inputData.carPrice,
+            officialFiscalValue: inputData.officialFiscalValue,
+            carAge: inputData.carAge,
+            co2Emissions: inputData.co2Emissions,
+            sellerType: inputData.sellerType,
+          },
+          result: {
+            totalCost: resultData.totalCost,
+            registrationTax: resultData.registrationTax,
+            itpTax: resultData.itpTax,
+            duty: resultData.duty,
+            vat: resultData.vat,
+            totalImportTaxes: resultData.totalImportTaxes,
+            taxRateApplied: resultData.taxRateApplied,
+            depreciationPercentage: resultData.depreciationPercentage,
+          },
+        };
+        history.unshift(entry); // newest first
+        // Limit to 50 entries
+        if (history.length > 50) history.pop();
+        await AsyncStorage.setItem("@import_history", JSON.stringify(history));
+      } catch (e) {
+        console.error("Failed to save", e);
+      }
+    },
+    [],
+  );
 
   // Entrance animation
   useEffect(() => {
@@ -79,10 +124,10 @@ export default function ResultScreen() {
 
     // Auto-save to history
     saveToHistory(input, result);
-  }, []);
+  }, [fadeAnim, slideAnim, input, result, saveToHistory]);
 
   // Helper function to download PDF directly
-  const downloadPDF = async () => {
+  const downloadPDF = useCallback(async () => {
     try {
       const { generateAndSharePDF } = await import("@/utils/generatePdf");
       await generateAndSharePDF(input, result);
@@ -91,7 +136,7 @@ export default function ResultScreen() {
       console.error("PDF generation error:", error);
       Alert.alert("Error", "Could not generate PDF. Please try again.");
     }
-  };
+  }, [input, result, t]);
 
   useEffect(() => {
     const ad = RewardedAd.createForAdRequest(AdUnits.REWARDED, {
@@ -144,45 +189,7 @@ export default function ResultScreen() {
       unsubscribeEarned();
       unsubscribeClosed();
     };
-  }, []);
-
-  const saveToHistory = async (
-    inputData: CalculationInput,
-    resultData: CalculationResult,
-  ) => {
-    try {
-      const existing = await AsyncStorage.getItem("@import_history");
-      const history = existing ? JSON.parse(existing) : [];
-      const entry = {
-        id: Date.now().toString(),
-        date: new Date().toISOString(),
-        input: {
-          originCountry: inputData.originCountry,
-          carPrice: inputData.carPrice,
-          officialFiscalValue: inputData.officialFiscalValue,
-          carAge: inputData.carAge,
-          co2Emissions: inputData.co2Emissions,
-          sellerType: inputData.sellerType,
-        },
-        result: {
-          totalCost: resultData.totalCost,
-          registrationTax: resultData.registrationTax,
-          itpTax: resultData.itpTax,
-          duty: resultData.duty,
-          vat: resultData.vat,
-          totalImportTaxes: resultData.totalImportTaxes,
-          taxRateApplied: resultData.taxRateApplied,
-          depreciationPercentage: resultData.depreciationPercentage,
-        },
-      };
-      history.unshift(entry); // newest first
-      // Limit to 50 entries
-      if (history.length > 50) history.pop();
-      await AsyncStorage.setItem("@import_history", JSON.stringify(history));
-    } catch (e) {
-      console.error("Failed to save", e);
-    }
-  };
+  }, [downloadPDF]);
 
   const handleSave = () => {
     // Direct save for Pro users or if Ad is loaded (logic updated)

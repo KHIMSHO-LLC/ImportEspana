@@ -15,7 +15,7 @@
       "policy": "appVersion"
     },
     "ios": {
-      "buildNumber": "3",
+      "buildNumber": "4",
       "supportsTablet": true,
       "bundleIdentifier": "com.gio-khimsho.ImportEspana",
       "infoPlist": {

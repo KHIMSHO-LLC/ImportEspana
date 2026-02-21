@@ -3,6 +3,7 @@ import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Image, Pressable, Text, View } from "react-native";
 
+import { PrivacyConsent } from "@/components/PrivacyConsent";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { RevenueCatProvider, useRevenueCat } from "@/context/RevenueCatContext";
 import { Crown } from "lucide-react-native";
@@ -53,8 +54,6 @@ function ProButton() {
     </Pressable>
   );
 }
-
-import { PrivacyConsent } from "@/components/PrivacyConsent";
 
 export default function RootLayout() {
   return (

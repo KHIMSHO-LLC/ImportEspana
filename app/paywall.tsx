@@ -5,7 +5,7 @@ import { Alert, View } from "react-native";
 import RevenueCatUI from "react-native-purchases-ui";
 
 export default function PaywallScreen() {
-  const { isPro, restorePurchases } = useRevenueCat();
+  const { isPro } = useRevenueCat();
   const router = useRouter();
 
   // If user becomes Pro while on this screen, close it
@@ -13,7 +13,7 @@ export default function PaywallScreen() {
     if (isPro) {
       router.back();
     }
-  }, [isPro]);
+  }, [isPro, router]);
 
   return (
     <View style={{ flex: 1 }}>

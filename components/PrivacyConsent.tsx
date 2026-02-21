@@ -42,7 +42,7 @@ export function PrivacyConsent() {
         }
       }
     })();
-  }, []); // Run once on mount
+  }, [isMobileAdsStartCalled]);
 
   return null;
 }

@@ -69,7 +69,7 @@ export default function InputScreen() {
       friction: 8,
       tension: 40,
     }).start();
-  }, [importType]);
+  }, [importType, switchAnim]);
 
   // Validation state
   const [touched, setTouched] = useState({
@@ -122,7 +122,6 @@ export default function InputScreen() {
   const isValid =
     !validatePrice(price) &&
     !validateTransport(transportCost) &&
-    !validateCO2(co2) &&
     !validateCO2(co2) &&
     !validateFiscalValue(fiscalValue);
 
