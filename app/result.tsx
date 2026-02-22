@@ -36,6 +36,7 @@ export default function ResultScreen() {
   const { isPro } = useRevenueCat();
 
   // Transform params back to typed input
+  const inputStr = JSON.stringify(params);
   const input: CalculationInput = useMemo(
     () => ({
       originCountry: params.originCountry as any,
@@ -56,7 +57,8 @@ export default function ResultScreen() {
         ? parseFloat(params.transportCost as string)
         : undefined,
     }),
-    [params],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [inputStr],
   );
 
   const result = useMemo(() => calculateImportCost(input), [input]);
@@ -124,7 +126,8 @@ export default function ResultScreen() {
 
     // Auto-save to history
     saveToHistory(input, result);
-  }, [fadeAnim, slideAnim, input, result, saveToHistory]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Helper function to download PDF directly
   const downloadPDF = useCallback(async () => {
@@ -189,7 +192,8 @@ export default function ResultScreen() {
       unsubscribeEarned();
       unsubscribeClosed();
     };
-  }, [downloadPDF]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSave = () => {
     // Direct save for Pro users or if Ad is loaded (logic updated)
