@@ -60,7 +60,10 @@ export const translations = {
     sellerTypeInfo:
       "Buying from a Dealer avoids ITP tax. Buying from a Private Seller incurs 4% ITP.",
     fiscalInfo:
-      "The official value assigned by the Spanish tax authority (BOE).",
+      "The official NEW car value from the BOE (Boletín Oficial del Estado). This is the reference price before depreciation is applied based on the car's age.",
+    boeNewValue: "BOE Value (New Price)",
+    depreciatedValue: "Fiscal Value After Depreciation",
+    depreciatedHint: "This is the value Spain uses to calculate your taxes",
     // Daily limit
     limitReachedTitle: "Daily Limit Reached",
     limitReachedMessage:
@@ -153,7 +156,12 @@ export const translations = {
       "Las emisiones de CO2 determinan el tramo del impuesto de matriculación.",
     sellerTypeInfo:
       "Comprar a un Concesionario evita el ITP. Comprar a un Particular conlleva un 4% de ITP.",
-    fiscalInfo: "El valor oficial asignado por la Agencia Tributaria (BOE).",
+    fiscalInfo:
+      "El valor oficial del vehículo NUEVO según el BOE. Este es el precio de referencia antes de aplicar la depreciación por antigüedad.",
+    boeNewValue: "Valor BOE (Precio Nuevo)",
+    depreciatedValue: "Valor Fiscal Tras Depreciación",
+    depreciatedHint:
+      "Este es el valor que Hacienda usa para calcular tus impuestos",
     limitReachedTitle: "Límite diario alcanzado",
     limitReachedMessage:
       "Los usuarios gratuitos pueden hacer 3 cálculos por día. ¡Actualiza a Pro para cálculos ilimitados!",
@@ -241,7 +249,10 @@ export const translations = {
     sellerTypeInfo:
       "Покупка у дилера освобождает от ITP. Покупка у частника облагается 4% ITP.",
     fiscalInfo:
-      "Официальная стоимость, установленная налоговой службой Испании (BOE).",
+      "Официальная стоимость НОВОГО автомобиля по данным BOE. Это базовая цена до применения амортизации по возрасту.",
+    boeNewValue: "Цена BOE (Новый авто)",
+    depreciatedValue: "Налоговая стоимость после амортизации",
+    depreciatedHint: "Эта сумма используется для расчёта налогов в Испании",
     limitReachedTitle: "Дневной лимит достигнут",
     limitReachedMessage:
       "Бесплатные пользователи могут делать 3 расчёта в день. Обновитесь до Pro для безлимитных расчётов!",
@@ -330,7 +341,11 @@ export const translations = {
     sellerTypeInfo:
       "Kauf vom Händler vermeidet ITP-Steuer. Kauf von Privatperson: 4% ITP.",
     fiscalInfo:
-      "Der von der spanischen Steuerbehörde (BOE) festgelegte offizielle Wert.",
+      "Der offizielle NEUWAGEN-Wert laut BOE. Dies ist der Referenzpreis vor Anwendung der Abschreibung nach Fahrzeugalter.",
+    boeNewValue: "BOE-Wert (Neupreis)",
+    depreciatedValue: "Steuerwert nach Abschreibung",
+    depreciatedHint:
+      "Dieser Wert wird in Spanien zur Steuerberechnung verwendet",
     limitReachedTitle: "Tageslimit erreicht",
     limitReachedMessage:
       "Gratisnutzer können 3 Berechnungen pro Tag durchführen. Upgrade auf Pro für unbegrenzte Berechnungen!",
@@ -420,7 +435,11 @@ export const translations = {
     sellerTypeInfo:
       "L'achat chez un concessionnaire évite la taxe ITP. L'achat à un particulier encourt 4% d'ITP.",
     fiscalInfo:
-      "La valeur officielle attribuée par l'administration fiscale espagnole (BOE).",
+      "La valeur officielle du véhicule NEUF selon le BOE. C'est le prix de référence avant application de la dépréciation selon l'âge du véhicule.",
+    boeNewValue: "Valeur BOE (Prix Neuf)",
+    depreciatedValue: "Valeur Fiscale Après Dépréciation",
+    depreciatedHint:
+      "C'est la valeur utilisée par l'Espagne pour calculer vos impôts",
     limitReachedTitle: "Limite quotidienne atteinte",
     limitReachedMessage:
       "Les utilisateurs gratuits peuvent effectuer 3 calculs par jour. Passez à Pro pour des calculs illimités !",

@@ -9,6 +9,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useRevenueCat } from "@/context/RevenueCatContext";
 import { useCalculationLimit } from "@/hooks/useCalculationLimit";
 import { CarAge, Country, ImportType } from "@/types";
+import { DEPRECIATION_TABLE } from "@/utils/taxCalculator";
 import { Stack, useRouter } from "expo-router";
 import {
   AlertCircle,
@@ -462,7 +463,7 @@ export default function InputScreen() {
           {fiscalValue && !errors.fiscalValue && (
             <View style={styles.fiscalValueDisplay}>
               <Text style={styles.fiscalValueLabel}>
-                💰 {t("manualEntryLabel")}
+                💰 {t("boeNewValue")}
                 <InfoTooltip text={t("fiscalInfo")} />
               </Text>
               <Text style={styles.fiscalValueAmount}>
@@ -547,6 +548,26 @@ export default function InputScreen() {
               ))}
             </ScrollView>
           </View>
+
+          {/* Depreciated Value Display */}
+          {fiscalValue && age !== "new" && (
+            <View style={styles.depreciatedValueDisplay}>
+              <Text style={styles.depreciatedLabel}>
+                📉 {t("depreciatedValue")}
+              </Text>
+              <Text style={styles.depreciatedSubtext}>
+                €{parseFloat(fiscalValue).toLocaleString("de-DE")} ×{" "}
+                {(DEPRECIATION_TABLE[age] * 100).toFixed(0)}% ={" "}
+              </Text>
+              <Text style={styles.depreciatedAmount}>
+                €
+                {(
+                  parseFloat(fiscalValue) * DEPRECIATION_TABLE[age]
+                ).toLocaleString("de-DE", { maximumFractionDigits: 0 })}
+              </Text>
+              <Text style={styles.depreciatedHint}>{t("depreciatedHint")}</Text>
+            </View>
+          )}
 
           {/* Seller Type (Only for EU) */}
           {importType === "EU" && (
@@ -817,6 +838,38 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     flexDirection: "row",
     alignItems: "center",
+  },
+  depreciatedValueDisplay: {
+    backgroundColor: "#FFF7ED",
+    padding: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#FDBA74",
+  },
+  depreciatedLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#9A3412",
+    marginBottom: 4,
+  },
+  depreciatedSubtext: {
+    fontSize: 13,
+    color: "#C2410C",
+    marginBottom: 2,
+  },
+  depreciatedAmount: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#C2410C",
+    marginBottom: 4,
+  },
+  depreciatedHint: {
+    fontSize: 11,
+    color: "#9A3412",
+    textAlign: "center",
+    fontStyle: "italic",
   },
   fiscalValueAmount: {
     fontSize: 24,

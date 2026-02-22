@@ -2,7 +2,7 @@ import { CalculationInput, CalculationResult, Country } from "../types";
 
 // Official Hacienda Depreciation Table (BOE)
 // Represents the % of value RETAINED by the car.
-const DEPRECIATION_TABLE = {
+export const DEPRECIATION_TABLE = {
   new: 1.0, // Less than 1 year: 100%
   "1_year": 0.84, // 1-2 years: 84%
   "2_years": 0.67, // 2-3 years: 67%
