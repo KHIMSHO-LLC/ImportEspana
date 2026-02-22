@@ -28,6 +28,7 @@ import {
   Alert,
   Animated,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -41,7 +42,7 @@ import { BannerAd, BannerAdSize } from "react-native-google-mobile-ads";
 export default function InputScreen() {
   const router = useRouter();
   const { t } = useLanguage();
-  const { isPro } = useRevenueCat();
+  const { isPro, restorePurchases } = useRevenueCat();
   const { remaining, hasReachedLimit, incrementCount, FREE_DAILY_LIMIT } =
     useCalculationLimit(isPro);
 
@@ -538,7 +539,7 @@ export default function InputScreen() {
                     ]}
                   >
                     {a === "new"
-                      ? t("age").split(" ")[0] || "New"
+                      ? "New"
                       : a
                           .replace(/_/g, " ")
                           .replace("years", "yrs")
@@ -673,6 +674,37 @@ export default function InputScreen() {
               )}
             </View>
           )}
+
+          {/* Info Footer */}
+          <View style={styles.infoFooter}>
+            <Pressable
+              onPress={() =>
+                Linking.openURL("https://importespana.com/privacy")
+              }
+            >
+              <Text style={styles.infoFooterLink}>{t("privacyPolicy")}</Text>
+            </Pressable>
+            <Text style={styles.infoFooterDot}>·</Text>
+            <Pressable
+              onPress={() => Linking.openURL("https://importespana.com/terms")}
+            >
+              <Text style={styles.infoFooterLink}>{t("termsOfService")}</Text>
+            </Pressable>
+            {!isPro && (
+              <>
+                <Text style={styles.infoFooterDot}>·</Text>
+                <Pressable
+                  onPress={() => {
+                    restorePurchases();
+                  }}
+                >
+                  <Text style={styles.infoFooterLink}>
+                    {t("restorePurchases")}
+                  </Text>
+                </Pressable>
+              </>
+            )}
+          </View>
 
           <View style={{ height: 100 }} />
         </ScrollView>
@@ -922,4 +954,22 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { backgroundColor: "#CBD5E1", opacity: 0.6 },
   buttonText: { fontSize: 18, fontWeight: "bold", color: Colors.white },
+  infoFooter: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    flexWrap: "wrap",
+    paddingVertical: 16,
+    gap: 4,
+  },
+  infoFooterLink: {
+    fontSize: 12,
+    color: Colors.textLight,
+    textDecorationLine: "underline",
+  },
+  infoFooterDot: {
+    fontSize: 12,
+    color: Colors.textLight,
+    marginHorizontal: 4,
+  },
 });

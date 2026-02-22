@@ -98,6 +98,9 @@ export const translations = {
     homologationInfo:
       "Required for vehicles from outside the EU that lack a European Certificate of Conformity (COC).",
     invoicePrice: "Invoice Price (€)",
+    privacyPolicy: "Privacy Policy",
+    termsOfService: "Terms of Service",
+    restorePurchases: "Restore Purchases",
   },
   es: {
     originCountry: "País de Origen",
@@ -194,6 +197,9 @@ export const translations = {
     homologationInfo:
       "Necesaria para vehículos de fuera de la UE que no tienen Certificado de Conformidad Europeo (COC).",
     invoicePrice: "Precio de Factura (€)",
+    privacyPolicy: "Política de Privacidad",
+    termsOfService: "Términos de Servicio",
+    restorePurchases: "Restaurar Compras",
   },
   ru: {
     originCountry: "Страна происхождения",
@@ -285,6 +291,9 @@ export const translations = {
     homologationInfo:
       "Необходима для автомобилей из-за пределов ЕС без европейского сертификата соответствия (COC).",
     invoicePrice: "Цена по счету (€)",
+    privacyPolicy: "Политика конфиденциальности",
+    termsOfService: "Условия использования",
+    restorePurchases: "Восстановить покупки",
   },
   de: {
     originCountry: "Herkunftsland",
@@ -378,6 +387,9 @@ export const translations = {
     homologationInfo:
       "Erforderlich für Fahrzeuge von außerhalb der EU ohne europäische Konformitätsbescheinigung (COC).",
     invoicePrice: "Rechnungspreis (€)",
+    privacyPolicy: "Datenschutzrichtlinie",
+    termsOfService: "Nutzungsbedingungen",
+    restorePurchases: "Käufe wiederherstellen",
   },
   fr: {
     originCountry: "Pays d'origine",
@@ -472,5 +484,8 @@ export const translations = {
     homologationInfo:
       "Requis pour les véhicules hors UE sans Certificat de Conformité Européen (COC).",
     invoicePrice: "Prix de Facture (€)",
+    privacyPolicy: "Politique de Confidentialité",
+    termsOfService: "Conditions d'Utilisation",
+    restorePurchases: "Restaurer les achats",
   },
 };
