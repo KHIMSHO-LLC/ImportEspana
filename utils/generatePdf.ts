@@ -36,7 +36,7 @@ export async function generateAndSharePDF(
           <div class="row"><span>Origin Country</span> <span>${input.originCountry}</span></div>
           <div class="row"><span>Factory Price (Purchase)</span> <span>${input.carPrice.toLocaleString("de-DE", { style: "currency", currency: "EUR" })}</span></div>
           <div class="row"><span>Fiscal Value (Hacienda)</span> <span>${input.officialFiscalValue?.toLocaleString("de-DE", { style: "currency", currency: "EUR" }) || "N/A"}</span></div>
-          <div class="row"><span>Age</span> <span>${input.carAge.replace(/_/g, " ")}</span></div>
+          <div class="row"><span>Age</span> <span>${input.carAge ? input.carAge.replace(/_/g, " ") : input.registrationDate || "N/A"}</span></div>
           <div class="row"><span>CO2 Emissions</span> <span>${input.co2Emissions} g/km</span></div>
           <div class="row"><span>Depreciation (Official)</span> <span>${((1 - result.depreciationPercentage) * 100).toFixed(0)}%</span></div>
           <div class="row"><span>Tax Base</span> <span>${result.taxBase?.toLocaleString("de-DE", { style: "currency", currency: "EUR" })}</span></div>

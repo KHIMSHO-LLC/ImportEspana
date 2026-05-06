@@ -11,6 +11,8 @@ export const translations = {
     yearOptional: "Vehicle Year (optional)",
     co2: "CO2 Emissions (g/km)",
     age: "Car Age",
+    isNew: "Condition is completely new (0 km)",
+    isNewInfo: "Less than 6000km and 6 months old",
     sellerType: "Seller Type",
     dealer: "Dealer",
     private: "Private",
@@ -37,14 +39,13 @@ export const translations = {
     dgt: "DGT Fee",
     itv: "ITV Inspection",
     plates: "Plates & Admin",
-    totalImportCost: "Total Import Cost",
+    totalImportCost: "Spanish Taxes & Fees",
+    grandTotal: "TOTAL",
     calculationDetails: "Calculation Details",
     depreciation: "Depreciation Applied:",
     taxBase: "Tax Base:",
     taxRate: "Tax Rate:",
     saveDownload: "Save & Download PDF",
-    watchAd: "📺 Watch a short ad to download",
-    loadingAd: "(Loading...)",
     // PDF
     pdfTitle: "Import Cost Estimate",
     // Tooltips
@@ -62,8 +63,6 @@ export const translations = {
     fiscalInfo:
       "The official NEW car value from the BOE (Boletín Oficial del Estado). This is the reference price before depreciation is applied based on the car's age.",
     boeNewValue: "BOE Value (New Price)",
-    depreciatedValue: "Fiscal Value After Depreciation",
-    depreciatedHint: "This is the value Spain uses to calculate your taxes",
     // Daily limit
     limitReachedTitle: "Daily Limit Reached",
     limitReachedMessage:
@@ -111,6 +110,8 @@ export const translations = {
     yearOptional: "Año del vehículo (opcional)",
     co2: "Emisiones CO2 (g/km)",
     age: "Antigüedad",
+    isNew: "Condición totalmente nueva (0 km)",
+    isNewInfo: "Menos de 6000km y 6 meses de antigüedad",
     sellerType: "Tipo de Vendedor",
     dealer: "Concesionario",
     private: "Particular",
@@ -137,14 +138,13 @@ export const translations = {
     dgt: "Tasa DGT",
     itv: "Inspección ITV",
     plates: "Placas y Gestión",
-    totalImportCost: "Coste Total de Importación",
+    totalImportCost: "Impuestos y Tasas (España)",
+    grandTotal: "TOTAL",
     calculationDetails: "Detalles del Cálculo",
     depreciation: "Depreciación Aplicada:",
     taxBase: "Base Imponible:",
     taxRate: "Tipo Impositivo:",
     saveDownload: "Guardar y Descargar PDF",
-    watchAd: "📺 Mira un anuncio para descargar",
-    loadingAd: "(Cargando...)",
     pdfTitle: "Presupuesto de Importación",
     // Tooltips
     originCountryInfo:
@@ -162,9 +162,6 @@ export const translations = {
     fiscalInfo:
       "El valor oficial del vehículo NUEVO según el BOE. Este es el precio de referencia antes de aplicar la depreciación por antigüedad.",
     boeNewValue: "Valor BOE (Precio Nuevo)",
-    depreciatedValue: "Valor Fiscal Tras Depreciación",
-    depreciatedHint:
-      "Este es el valor que Hacienda usa para calcular tus impuestos",
     limitReachedTitle: "Límite diario alcanzado",
     limitReachedMessage:
       "Los usuarios gratuitos pueden hacer 3 cálculos por día. ¡Actualiza a Pro para cálculos ilimitados!",
@@ -210,6 +207,8 @@ export const translations = {
     yearOptional: "Год выпуска (необязательно)",
     co2: "Выбросы CO2 (г/км)",
     age: "Возраст авто",
+    isNew: "Совершенно новый (0 км)",
+    isNewInfo: "Менее 6000 км пробега и до 6 месяцев",
     sellerType: "Тип продавца",
     dealer: "Дилер",
     private: "Частник",
@@ -234,14 +233,13 @@ export const translations = {
     dgt: "Сбор DGT",
     itv: "Техосмотр ITV",
     plates: "Номера и оформление",
-    totalImportCost: "Общая стоимость импорта",
+    totalImportCost: "Налоги и сборы (Испания)",
+    grandTotal: "ИТОГО",
     calculationDetails: "Детали расчета",
     depreciation: "Амортизация:",
     taxBase: "Налоговая база:",
     taxRate: "Налоговая ставка:",
     saveDownload: "Сохранить и скачать PDF",
-    watchAd: "📺 Посмотрите рекламу для скачивания",
-    loadingAd: "(Загрузка...)",
     pdfTitle: "Смета импорта",
     // Tooltips
     originCountryInfo:
@@ -257,8 +255,6 @@ export const translations = {
     fiscalInfo:
       "Официальная стоимость НОВОГО автомобиля по данным BOE. Это базовая цена до применения амортизации по возрасту.",
     boeNewValue: "Цена BOE (Новый авто)",
-    depreciatedValue: "Налоговая стоимость после амортизации",
-    depreciatedHint: "Эта сумма используется для расчёта налогов в Испании",
     limitReachedTitle: "Дневной лимит достигнут",
     limitReachedMessage:
       "Бесплатные пользователи могут делать 3 расчёта в день. Обновитесь до Pro для безлимитных расчётов!",
@@ -304,6 +300,8 @@ export const translations = {
     yearOptional: "Baujahr (optional)",
     co2: "CO2-Emissionen (g/km)",
     age: "Fahrzeugalter",
+    isNew: "Zustand ist komplett neu (0 km)",
+    isNewInfo: "Weniger als 6000 km und 6 Monate alt",
     sellerType: "Verkäufertyp",
     dealer: "Händler",
     private: "Privat",
@@ -328,14 +326,13 @@ export const translations = {
     dgt: "DGT-Gebühr",
     itv: "ITV-Inspektion",
     plates: "Kennzeichen & Admin",
-    totalImportCost: "Gesamte Importkosten",
+    totalImportCost: "Steuern & Gebühren (Spanien)",
+    grandTotal: "GESAMT",
     calculationDetails: "Berechnungsdetails",
     depreciation: "Angewandte Abschreibung:",
     taxBase: "Steuerbasis:",
     taxRate: "Steuersatz:",
     saveDownload: "Speichern & PDF herunterladen",
-    watchAd: "📺 Werbung ansehen zum Herunterladen",
-    loadingAd: "(Lädt...)",
     pdfTitle: "Importkostenvoranschlag",
     // Tooltips
     originCountryInfo:
@@ -352,9 +349,6 @@ export const translations = {
     fiscalInfo:
       "Der offizielle NEUWAGEN-Wert laut BOE. Dies ist der Referenzpreis vor Anwendung der Abschreibung nach Fahrzeugalter.",
     boeNewValue: "BOE-Wert (Neupreis)",
-    depreciatedValue: "Steuerwert nach Abschreibung",
-    depreciatedHint:
-      "Dieser Wert wird in Spanien zur Steuerberechnung verwendet",
     limitReachedTitle: "Tageslimit erreicht",
     limitReachedMessage:
       "Gratisnutzer können 3 Berechnungen pro Tag durchführen. Upgrade auf Pro für unbegrenzte Berechnungen!",
@@ -400,6 +394,8 @@ export const translations = {
     yearOptional: "Année (optionnel)",
     co2: "Émissions CO2 (g/km)",
     age: "Âge du véhicule",
+    isNew: "État complètement neuf (0 km)",
+    isNewInfo: "Moins de 6000km et 6 mois de mise en circulation",
     sellerType: "Type de vendeur",
     dealer: "Concessionnaire",
     private: "Particulier",
@@ -424,14 +420,13 @@ export const translations = {
     dgt: "Frais DGT",
     itv: "Inspection ITV",
     plates: "Plaques et administration",
-    totalImportCost: "Coût total d'importation",
+    totalImportCost: "Taxes & frais (Espagne)",
+    grandTotal: "TOTAL",
     calculationDetails: "Détails du calcul",
     depreciation: "Dépréciation appliquée :",
     taxBase: "Base imposable :",
     taxRate: "Taux d'imposition :",
     saveDownload: "Enregistrer et télécharger le PDF",
-    watchAd: "📺 Regarder une pub pour télécharger",
-    loadingAd: "(Chargement...)",
     pdfTitle: "Devis d'importation",
     // Tooltips
     originCountryInfo:
@@ -449,9 +444,6 @@ export const translations = {
     fiscalInfo:
       "La valeur officielle du véhicule NEUF selon le BOE. C'est le prix de référence avant application de la dépréciation selon l'âge du véhicule.",
     boeNewValue: "Valeur BOE (Prix Neuf)",
-    depreciatedValue: "Valeur Fiscale Après Dépréciation",
-    depreciatedHint:
-      "C'est la valeur utilisée par l'Espagne pour calculer vos impôts",
     limitReachedTitle: "Limite quotidienne atteinte",
     limitReachedMessage:
       "Les utilisateurs gratuits peuvent effectuer 3 calculs par jour. Passez à Pro pour des calculs illimités !",

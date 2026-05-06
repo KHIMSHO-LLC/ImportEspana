@@ -1,5 +1,15 @@
-import { Colors } from "@/constants/Colors";
+import { Badge, Input, Label } from "@/components/ui";
+import { Fonts, Radius, Space } from "@/constants/Colors";
 import { useLanguage } from "@/context/LanguageContext";
+import { useTheme } from "@/context/ThemeContext";
+import {
+  Calendar,
+  Car,
+  CheckCircle2,
+  Coins,
+  Wrench,
+  Zap,
+} from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
   Keyboard,
@@ -7,7 +17,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import boePrices from "../src/data/boe_prices.json";
@@ -26,6 +35,7 @@ interface Vehicle {
   cvf: string;
   cv: number;
   value: number;
+  co2?: number | null;
 }
 
 interface VehicleAutocompleteProps {
@@ -36,6 +46,7 @@ interface VehicleAutocompleteProps {
     fuelType?: string;
     isManual: boolean;
     year?: number;
+    co2?: number | null;
   }) => void;
   initialData?: {
     brand?: string;
@@ -51,15 +62,13 @@ export function VehicleAutocomplete({
   initialData,
 }: VehicleAutocompleteProps) {
   const { t } = useLanguage();
+  const { theme } = useTheme();
   const [brandQuery, setBrandQuery] = useState(initialData?.brand || "");
   const [modelQuery, setModelQuery] = useState(initialData?.model || "");
   const [yearFilter, setYearFilter] = useState("");
   const [selectedBrand, setSelectedBrand] = useState<string | null>(
     initialData?.brand || null,
   );
-
-  // Initialize selected vehicle if we have specific data, otherwise null
-  // Note: We don't have the full object from initialData, so we construct a partial or just rely on state
   const [selectedVehicle, setSelectedVehicle] = useState<any | null>(
     initialData && !initialData.isManual && initialData.brand
       ? {
@@ -80,48 +89,33 @@ export function VehicleAutocomplete({
     initialData?.isManual ? initialData.value.toString() : "",
   );
 
-  // Get unique brands
   const allBrands = useMemo(() => {
     const brandSet = new Set<string>();
-    (boePrices as unknown as Vehicle[]).forEach((vehicle) =>
-      brandSet.add(vehicle.brand),
-    );
+    (boePrices as unknown as Vehicle[]).forEach((v) => brandSet.add(v.brand));
     return Array.from(brandSet).sort();
   }, []);
 
-  // Filter brands based on query
   const filteredBrands = useMemo(() => {
     if (!brandQuery.trim()) return [];
-
-    const query = brandQuery.toLowerCase();
+    const q = brandQuery.toLowerCase();
     return allBrands
-      .filter((brand) => brand.toLowerCase().includes(query))
+      .filter((b) => b.toLowerCase().includes(q))
       .slice(0, 10);
   }, [brandQuery, allBrands]);
 
-  // Filter models based on selected brand, model query, and year
   const filteredModels = useMemo(() => {
     if (!selectedBrand || !modelQuery.trim()) return [];
-
-    const query = modelQuery.toLowerCase();
+    const q = modelQuery.toLowerCase();
     const year = yearFilter ? parseInt(yearFilter) : null;
-
     return (boePrices as unknown as Vehicle[])
-      .filter((vehicle) => {
-        // Brand match
-        if (vehicle.brand !== selectedBrand) return false;
-
-        // Model match
-        if (!vehicle.model.toLowerCase().includes(query)) return false;
-
-        // Year filter (if provided)
+      .filter((v) => {
+        if (v.brand !== selectedBrand) return false;
+        if (!v.model.toLowerCase().includes(q)) return false;
         if (year) {
-          const startYear = parseInt(vehicle.startYear);
-          const endYear = vehicle.endYear ? parseInt(vehicle.endYear) : 2026;
-          // Updated Logic: Ensure the model availability overlaps with the requested year
-          if (year < startYear || year > endYear) return false;
+          const sy = parseInt(v.startYear);
+          const ey = v.endYear ? parseInt(v.endYear) : 2026;
+          if (year < sy || year > ey) return false;
         }
-
         return true;
       })
       .slice(0, 15);
@@ -140,10 +134,7 @@ export function VehicleAutocomplete({
     setSelectedVehicle(vehicle);
     setModelQuery(vehicle.model);
     setShowModelSuggestions(false);
-
-    // Determine the year to pass.
     const yearInput = yearFilter ? parseInt(yearFilter) : undefined;
-
     onVehicleSelected({
       value: vehicle.value,
       brand: vehicle.brand,
@@ -151,6 +142,7 @@ export function VehicleAutocomplete({
       fuelType: vehicle.fuelType,
       isManual: false,
       year: yearInput,
+      co2: vehicle.co2,
     });
     Keyboard.dismiss();
   };
@@ -158,10 +150,7 @@ export function VehicleAutocomplete({
   const handleManualSubmit = () => {
     const value = parseFloat(manualValue);
     if (!isNaN(value) && value > 0) {
-      onVehicleSelected({
-        value: value,
-        isManual: true,
-      });
+      onVehicleSelected({ value, isManual: true });
       Keyboard.dismiss();
     }
   };
@@ -175,75 +164,125 @@ export function VehicleAutocomplete({
     setManualValue("");
   };
 
-  // Manual entry mode
+  const suggestionsCardStyle = {
+    backgroundColor: theme.surfacePopover,
+    borderColor: theme.glassBorder,
+  };
+
   if (isManualMode) {
     return (
-      <View style={styles.container}>
-        <View style={styles.inputGroup}>
-          <View style={styles.labelRow}>
-            <Text style={styles.label}>💰 {t("manualEntryLabel")}</Text>
-          </View>
-          <Text style={styles.helpText}>{t("manualEntryHelp")}</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            placeholder="Ej: 45000"
-            value={manualValue}
-            onChangeText={setManualValue}
-            onSubmitEditing={handleManualSubmit}
-          />
-
-          {manualValue && parseFloat(manualValue) > 0 && (
-            <Pressable
-              style={styles.confirmButton}
-              onPress={handleManualSubmit}
+      <View>
+        <Label icon={<Coins size={16} color={theme.brandBlue} />}>
+          {t("manualEntryLabel")}
+        </Label>
+        <Text
+          style={{
+            color: theme.textTertiary,
+            fontSize: 12,
+            fontFamily: Fonts.sansRegular,
+            marginBottom: Space.sm,
+          }}
+        >
+          {t("manualEntryHelp")}
+        </Text>
+        <Input
+          testID="manual-value-input"
+          keyboardType="numeric"
+          placeholder="Ej: 45000"
+          value={manualValue}
+          // Commit live on every keystroke — numeric keyboard has no return
+          // key on iOS, so blur/submit-based commits are unreliable.
+          onChangeText={(v) => {
+            setManualValue(v);
+            const num = parseFloat(v);
+            if (!isNaN(num) && num > 0) {
+              onVehicleSelected({ value: num, isManual: true });
+            }
+          }}
+          onSubmitEditing={handleManualSubmit}
+          onEndEditing={handleManualSubmit}
+        />
+        {!!manualValue && parseFloat(manualValue) > 0 && (
+          <Pressable
+            testID="manual-value-confirm"
+            style={[
+              styles.confirmBtn,
+              { backgroundColor: theme.brandBlue, borderColor: theme.brandBlueDeep },
+            ]}
+            onPress={handleManualSubmit}
+          >
+            <Text
+              style={{
+                color: "#fff",
+                fontFamily: Fonts.sansBold,
+                fontSize: 14,
+              }}
             >
-              <Text style={styles.confirmButtonText}>{t("confirmValue")}</Text>
-            </Pressable>
-          )}
-        </View>
-
+              {t("confirmValue")}
+            </Text>
+          </Pressable>
+        )}
         <Pressable style={styles.switchLink} onPress={toggleManualMode}>
-          <Text style={styles.switchLinkText}>{t("backToSearch")}</Text>
+          <Text
+            style={{
+              color: theme.brandBlueLight,
+              fontSize: 13,
+              fontFamily: Fonts.sansMedium,
+              textDecorationLine: "underline",
+            }}
+          >
+            {t("backToSearch")}
+          </Text>
         </Pressable>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      {/* Brand Search */}
-      <View style={[styles.inputGroup, { zIndex: 10 }]}>
-        <View style={styles.labelRow}>
-          <Text style={styles.label}>🚗 {t("brand")}</Text>
-          <InfoTooltip text={t("vehicleSearchInfo")} />
-        </View>
-        <TextInput
-          style={styles.input}
-          placeholder="Escribe la marca (ej: Mercedes, BMW)"
+    <View>
+      {/* Brand */}
+      <View style={{ zIndex: 10, marginBottom: Space.md }}>
+        <Label
+          icon={<Car size={16} color={theme.brandBlue} />}
+          trailing={<InfoTooltip text={t("vehicleSearchInfo")} />}
+        >
+          {t("brand")}
+        </Label>
+        <Input
+          placeholder="Mercedes, BMW…"
           value={brandQuery}
-          onChangeText={(text) => {
-            setBrandQuery(text);
+          onChangeText={(v) => {
+            setBrandQuery(v);
             setShowBrandSuggestions(true);
             setSelectedBrand(null);
           }}
           onFocus={() => setShowBrandSuggestions(true)}
         />
-
         {showBrandSuggestions && filteredBrands.length > 0 && (
-          <View style={styles.suggestionsContainer}>
+          <View style={[styles.suggestions, suggestionsCardStyle]}>
             <ScrollView
-              style={styles.suggestionsList}
               keyboardShouldPersistTaps="handled"
-              nestedScrollEnabled={true}
+              nestedScrollEnabled
+              style={{ maxHeight: 200 }}
             >
-              {filteredBrands.map((item) => (
+              {filteredBrands.map((b) => (
                 <Pressable
-                  key={item}
-                  style={styles.suggestionItem}
-                  onPress={() => handleBrandSelect(item)}
+                  key={b}
+                  style={[
+                    styles.suggestionItem,
+                    { borderBottomColor: theme.glassBorder },
+                  ]}
+                  onPress={() => handleBrandSelect(b)}
                 >
-                  <Text style={styles.suggestionText}>{item}</Text>
+                  <Text
+                    style={{
+                      color: theme.textPrimary,
+                      fontSize: 15,
+                      fontFamily: Fonts.sansMedium,
+                    }}
+                  >
+                    {b}
+                  </Text>
                 </Pressable>
               ))}
             </ScrollView>
@@ -251,15 +290,16 @@ export function VehicleAutocomplete({
         )}
       </View>
 
-      {/* Year Filter (optional) */}
+      {/* Year */}
       {selectedBrand && (
-        <View style={styles.inputGroup}>
-          <View style={styles.labelRow}>
-            <Text style={styles.label}>📅 {t("yearOptional")}</Text>
-            <InfoTooltip text={t("yearInfo")} />
-          </View>
-          <TextInput
-            style={[styles.input, styles.yearInput]}
+        <View style={{ marginBottom: Space.md }}>
+          <Label
+            icon={<Calendar size={16} color={theme.brandBlue} />}
+            trailing={<InfoTooltip text={t("yearInfo")} />}
+          >
+            {t("yearOptional")}
+          </Label>
+          <Input
             keyboardType="numeric"
             placeholder="Ej: 2020"
             maxLength={4}
@@ -269,45 +309,71 @@ export function VehicleAutocomplete({
         </View>
       )}
 
-      {/* Model Search */}
+      {/* Model */}
       {selectedBrand && (
-        <View style={[styles.inputGroup, { zIndex: 5 }]}>
-          <View style={styles.labelRow}>
-            <Text style={styles.label}>🔧 {t("model")}</Text>
-            <InfoTooltip text={t("vehicleSearchInfo")} />
-          </View>
-          <TextInput
-            style={styles.input}
-            placeholder="Escribe el modelo (ej: X5, Clase C)"
+        <View style={{ zIndex: 5, marginBottom: Space.md }}>
+          <Label
+            icon={<Wrench size={16} color={theme.brandBlue} />}
+            trailing={<InfoTooltip text={t("vehicleSearchInfo")} />}
+          >
+            {t("model")}
+          </Label>
+          <Input
+            placeholder="X5, Clase C…"
             value={modelQuery}
-            onChangeText={(text) => {
-              setModelQuery(text);
+            onChangeText={(v) => {
+              setModelQuery(v);
               setShowModelSuggestions(true);
             }}
             onFocus={() => setShowModelSuggestions(true)}
           />
-
           {showModelSuggestions && filteredModels.length > 0 && (
-            <View style={styles.suggestionsContainer}>
+            <View style={[styles.suggestions, suggestionsCardStyle]}>
               <ScrollView
-                style={styles.suggestionsList}
                 keyboardShouldPersistTaps="handled"
-                nestedScrollEnabled={true}
+                nestedScrollEnabled
+                style={{ maxHeight: 220 }}
               >
-                {filteredModels.map((item) => (
+                {filteredModels.map((v) => (
                   <Pressable
-                    key={item.id}
-                    style={styles.suggestionItem}
-                    onPress={() => handleModelSelect(item)}
+                    key={v.id}
+                    style={[
+                      styles.suggestionItem,
+                      { borderBottomColor: theme.glassBorder },
+                    ]}
+                    onPress={() => handleModelSelect(v)}
                   >
-                    <View>
-                      <Text style={styles.suggestionText}>{item.model}</Text>
-                      <Text style={styles.suggestionSubtext}>
-                        {item.cv}cv • {item.startYear}
-                        {item.endYear ? `-${item.endYear}` : "+"} • €
-                        {item.value.toLocaleString("de-DE")}
-                        {item.fuelType === "Elc" && " ⚡"}
+                    <Text
+                      style={{
+                        color: theme.textPrimary,
+                        fontSize: 15,
+                        fontFamily: Fonts.sansSemibold,
+                      }}
+                    >
+                      {v.model}
+                    </Text>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 6,
+                        marginTop: 2,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: theme.textTertiary,
+                          fontSize: 12,
+                          fontFamily: Fonts.sansRegular,
+                        }}
+                      >
+                        {v.cv}cv · {v.startYear}
+                        {v.endYear ? `-${v.endYear}` : "+"} · €
+                        {v.value.toLocaleString("de-DE")}
                       </Text>
+                      {v.fuelType === "Elc" && (
+                        <Zap size={12} color={theme.success} />
+                      )}
                     </View>
                   </Pressable>
                 ))}
@@ -317,157 +383,119 @@ export function VehicleAutocomplete({
         </View>
       )}
 
-      {/* Selected Vehicle Info */}
+      {/* Selected summary */}
       {selectedVehicle && (
-        <View style={styles.selectedInfo}>
-          <Text style={styles.selectedTitle}>✅ {t("vehicleSearch")}</Text>
-          <Text style={styles.selectedText}>
+        <View
+          style={[
+            styles.selectedBox,
+            {
+              backgroundColor: theme.pillActiveBg,
+              borderColor: theme.pillActiveBorder,
+            },
+          ]}
+        >
+          <View
+            style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+          >
+            <CheckCircle2 size={14} color={theme.brandBlueLight} />
+            <Text
+              style={{
+                color: theme.brandBlueLight,
+                fontSize: 12,
+                fontFamily: Fonts.sansSemibold,
+                letterSpacing: 0.6,
+                textTransform: "uppercase",
+              }}
+            >
+              {t("vehicleSearch")}
+            </Text>
+          </View>
+          <Text
+            style={{
+              color: theme.textPrimary,
+              fontSize: 16,
+              fontFamily: Fonts.sansSemibold,
+              marginTop: 4,
+            }}
+          >
             {selectedVehicle.brand} {selectedVehicle.model}
           </Text>
-          <Text style={styles.selectedValue}>
+          <Text
+            style={{
+              color: theme.brandBlueLight,
+              fontSize: 20,
+              fontFamily: Fonts.monoBold,
+              letterSpacing: -0.3,
+              marginTop: 4,
+            }}
+          >
             €{selectedVehicle.value.toLocaleString("de-DE")}
           </Text>
           {selectedVehicle.fuelType === "Elc" && (
-            <View style={styles.evBadge}>
-              <Text style={styles.evBadgeText}>{t("evDetected")}</Text>
+            <View style={{ marginTop: 8 }}>
+              <Badge tone="success">{t("evDetected")}</Badge>
             </View>
           )}
         </View>
       )}
 
-      {/* Manual Entry Link */}
-      <Pressable style={styles.switchLink} onPress={toggleManualMode}>
-        <Text style={styles.switchLinkText}>{t("manualEntryLink")}</Text>
+      <Pressable
+        testID="vehicle-manual-toggle"
+        style={styles.switchLink}
+        onPress={toggleManualMode}
+      >
+        <Text
+          style={{
+            color: theme.brandBlueLight,
+            fontSize: 13,
+            fontFamily: Fonts.sansMedium,
+            textDecorationLine: "underline",
+          }}
+        >
+          {t("manualEntryLink")}
+        </Text>
       </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    marginBottom: 24,
-  },
-  inputGroup: {
-    marginBottom: 16,
-    position: "relative",
-    zIndex: 1,
-  },
-  labelRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: Colors.text,
-  },
-  helpText: {
-    fontSize: 12,
-    color: Colors.textLight,
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: Colors.white,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-  },
-  yearInput: {
-    // width: 120, // Removed to allow full width
-  },
-  suggestionsContainer: {
+  suggestions: {
     position: "absolute",
-    top: 80, // Adjusted for labelRow
+    top: 78,
     left: 0,
     right: 0,
-    backgroundColor: Colors.white,
     borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 8,
-    maxHeight: 200,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderRadius: Radius.md,
+    overflow: "hidden",
     zIndex: 1000,
-  },
-  suggestionsList: {
-    maxHeight: 200,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.4,
+    shadowRadius: 24,
+    elevation: 12,
   },
   suggestionItem: {
-    padding: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
-  suggestionText: {
-    fontSize: 15,
-    color: Colors.text,
-    fontWeight: "500",
+  selectedBox: {
+    padding: Space.md,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    marginTop: Space.sm,
   },
-  suggestionSubtext: {
-    fontSize: 12,
-    color: Colors.textLight,
-    marginTop: 4,
-  },
-  selectedInfo: {
-    backgroundColor: "#E6F4FE",
-    padding: 16,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  selectedTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.primary,
-    marginBottom: 4,
-  },
-  selectedText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  selectedValue: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: Colors.primary,
-  },
-  evBadge: {
-    marginTop: 8,
-    backgroundColor: "#10B981",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    alignSelf: "flex-start",
-  },
-  evBadgeText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
+  confirmBtn: {
+    marginTop: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: Radius.md,
+    alignItems: "center",
+    borderWidth: 1,
   },
   switchLink: {
-    marginTop: 8,
-    paddingVertical: 8,
-  },
-  switchLinkText: {
-    color: Colors.primary,
-    fontSize: 14,
-    textDecorationLine: "underline",
-  },
-  confirmButton: {
-    marginTop: 12,
-    backgroundColor: Colors.primary,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  confirmButtonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 16,
+    marginTop: Space.sm,
+    paddingVertical: 6,
   },
 });

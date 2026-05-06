@@ -1,0 +1,58 @@
+# Golden path: EU import (Germany → Madrid, dealer, used car).
+# Verifies the full flow from launch to a result screen with a non-zero total.
+appId: com.gio-khimsho.ImportEspana
+tags:
+  - smoke
+  - regression
+---
+- runFlow: _setup.yaml
+
+# 1. Calculator opens with EU selected by default.
+- assertVisible: "Origin Country"
+
+# 2. Pick origin country.
+- tapOn: "Germany"
+
+# 3. Pick region.
+- tapOn: "Madrid · 4%"
+
+# 4. Manual fiscal-value entry (skips the BOE autocomplete).
+#    pressKey Enter dismisses the numeric keyboard and triggers
+#    onSubmitEditing which commits the value via handleManualSubmit.
+- scrollUntilVisible:
+    element:
+      id: "vehicle-manual-toggle"
+- tapOn:
+    id: "vehicle-manual-toggle"
+- tapOn:
+    id: "manual-value-input"
+- inputText: "30000"
+- pressKey: Enter
+
+# 5. Price.
+- scrollUntilVisible:
+    element:
+      id: "price-input"
+- tapOn:
+    id: "price-input"
+- inputText: "22000"
+- pressKey: Enter
+
+# 6. CO2.
+- scrollUntilVisible:
+    element:
+      id: "co2-input"
+- tapOn:
+    id: "co2-input"
+- inputText: "145"
+- pressKey: Enter
+
+# 7. Calculate.
+- tapOn:
+    id: "calculate-button"
+
+# 8. Result screen renders with a euro total + breakdown.
+- assertVisible:
+    id: "result-total"
+- assertVisible: "Cost Breakdown"
+- assertVisible: "Calculation Details"

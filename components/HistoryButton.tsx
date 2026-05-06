@@ -1,4 +1,4 @@
-import { Colors } from "@/constants/Colors";
+import { useTheme } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
 import { ClipboardList } from "lucide-react-native";
 import React from "react";
@@ -6,14 +6,12 @@ import { TouchableOpacity, View } from "react-native";
 
 export function HistoryButton() {
   const router = useRouter();
+  const { theme } = useTheme();
 
   return (
     <TouchableOpacity
       activeOpacity={0.6}
-      onPress={() => {
-        console.log("🔵 History button pressed (Component)!");
-        router.push("/history");
-      }}
+      onPress={() => router.push("/history")}
       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       style={{
         width: 36,
@@ -24,7 +22,7 @@ export function HistoryButton() {
       }}
     >
       <View pointerEvents="none">
-        <ClipboardList size={20} color={Colors.white} />
+        <ClipboardList size={20} color={theme.textPrimary} />
       </View>
     </TouchableOpacity>
   );

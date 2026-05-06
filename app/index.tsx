@@ -1,122 +1,132 @@
 import { HistoryButton } from "@/components/HistoryButton";
 import { InfoTooltip } from "@/components/InfoTooltip";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { MonthYearPicker } from "@/components/MonthYearPicker";
 import { VehicleAutocomplete } from "@/components/VehicleAutocomplete";
-import { AdUnits } from "@/constants/Ads";
-import { Colors } from "@/constants/Colors";
+import {
+  Badge,
+  Caption,
+  Chip,
+  Divider,
+  GlassCard,
+  Input,
+  Label,
+  Pill,
+  PillGroup,
+  PrimaryButton,
+  SecondaryButton,
+  Tap,
+} from "@/components/ui";
+import { Fonts, Radius, Space } from "@/constants/Colors";
 import { DEFAULT_ITP_RATE, SPANISH_REGIONS } from "@/constants/ItpRates";
 import { useLanguage } from "@/context/LanguageContext";
 import { useRevenueCat } from "@/context/RevenueCatContext";
+import { useTheme } from "@/context/ThemeContext";
 import { useCalculationLimit } from "@/hooks/useCalculationLimit";
-import { CarAge, Country, ImportType } from "@/types";
-import { DEPRECIATION_TABLE } from "@/utils/taxCalculator";
+import { Country, ImportType } from "@/types";
+import { getDepreciationFactor } from "@/utils/taxCalculator";
 import { Stack, useRouter } from "expo-router";
 import {
   AlertCircle,
+  CalendarDays,
   CheckSquare,
+  Coins,
   Euro,
   Gauge,
-  GraduationCap,
   MapPin,
   RotateCcw,
+  Shield,
   Ship,
   Square,
   User,
 } from "lucide-react-native";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Alert,
-  Animated,
   KeyboardAvoidingView,
   Linking,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
-import { BannerAd, BannerAdSize } from "react-native-google-mobile-ads";
 
 export default function InputScreen() {
   const router = useRouter();
   const { t } = useLanguage();
   const { isPro, restorePurchases } = useRevenueCat();
+  const { theme } = useTheme();
   const { remaining, hasReachedLimit, incrementCount, FREE_DAILY_LIMIT } =
     useCalculationLimit(isPro);
 
-  // State
+  // ─── State ────────────────────────────────────────────────────────────────
   const [importType, setImportType] = useState<ImportType>("EU");
   const [originCountry, setOriginCountry] = useState<Country>("Germany");
   const [price, setPrice] = useState("");
   const [transportCost, setTransportCost] = useState("");
+  const [insuranceCost, setInsuranceCost] = useState("");
   const [needsHomologation, setNeedsHomologation] = useState(true);
   const [fiscalValue, setFiscalValue] = useState("");
   const [co2, setCo2] = useState("");
-  const [age, setAge] = useState<CarAge>("3_years");
+  const [registrationDate, setRegistrationDate] = useState("");
+  const [isNewCondition, setIsNewCondition] = useState(false);
   const [sellerType, setSellerType] = useState<"dealer" | "private">("dealer");
   const [isElectric, setIsElectric] = useState(false);
-
   const [selectedRegion, setSelectedRegion] = useState("Madrid");
-  const [resetKey, setResetKey] = useState(0); // To force remount of autocomplete
+  const [resetKey, setResetKey] = useState(0);
 
-  const switchAnim = useRef(new Animated.Value(0)).current;
-
-  // Animate switch when importType changes
-  useEffect(() => {
-    Animated.spring(switchAnim, {
-      toValue: importType === "EU" ? 0 : 1,
-      useNativeDriver: false, // animating layout property 'left'
-      friction: 8,
-      tension: 40,
-    }).start();
-  }, [importType, switchAnim]);
-
-  // Validation state
+  // ─── Validation ───────────────────────────────────────────────────────────
   const [touched, setTouched] = useState({
     price: false,
     transport: false,
+    insurance: false,
     co2: false,
     fiscalValue: false,
   });
 
-  // Validation helpers
-  const validatePrice = (value: string): string | null => {
-    const num = parseFloat(value);
-    if (!value || isNaN(num)) return t("priceError");
-    if (num <= 0) return t("priceError");
-    if (num > 10000000) return "Price too high";
+  const validatePrice = (v: string): string | null => {
+    const n = parseFloat(v);
+    if (!v || isNaN(n)) return t("priceError");
+    if (n <= 0) return t("priceError");
+    if (n > 10_000_000) return "Price too high";
     return null;
   };
 
-  const validateCO2 = (value: string): string | null => {
-    const num = parseFloat(value);
-    if (!value || isNaN(num)) return t("co2Error");
-    if (num < 0) return t("co2Error");
-    if (num > 500) return "Max 500 g/km";
+  const validateCO2 = (v: string): string | null => {
+    const n = parseFloat(v);
+    if (!v || isNaN(n)) return t("co2Error");
+    if (n < 0) return t("co2Error");
+    if (n > 500) return "Max 500 g/km";
     return null;
   };
 
-  const validateFiscalValue = (value: string): string | null => {
-    const num = parseFloat(value);
-    if (!value || isNaN(num)) return t("fiscalError");
-    if (num <= 0) return t("fiscalError");
+  const validateFiscalValue = (v: string): string | null => {
+    const n = parseFloat(v);
+    if (!v || isNaN(n)) return t("fiscalError");
+    if (n <= 0) return t("fiscalError");
     return null;
   };
 
-  const validateTransport = (value: string): string | null => {
-    if (importType === "EU") return null; // Optional for EU
-    const num = parseFloat(value);
-    if (!value || isNaN(num)) return "Enter transport cost";
-    if (num < 0) return "Invalid cost";
+  const validateTransport = (v: string): string | null => {
+    if (importType === "EU") return null;
+    const n = parseFloat(v);
+    if (!v || isNaN(n)) return "Enter transport cost";
+    if (n < 0) return "Invalid cost";
     return null;
   };
 
-  // Validation errors
+  const validateInsurance = (v: string): string | null => {
+    if (!v) return null; // optional — defaults to ~0.5% in calculator
+    const n = parseFloat(v);
+    if (isNaN(n) || n < 0) return "Invalid insurance";
+    return null;
+  };
+
   const errors = {
     price: touched.price ? validatePrice(price) : null,
     transport: touched.transport ? validateTransport(transportCost) : null,
+    insurance: touched.insurance ? validateInsurance(insuranceCost) : null,
     co2: touched.co2 ? validateCO2(co2) : null,
     fiscalValue: touched.fiscalValue ? validateFiscalValue(fiscalValue) : null,
   };
@@ -124,16 +134,71 @@ export default function InputScreen() {
   const isValid =
     !validatePrice(price) &&
     !validateTransport(transportCost) &&
+    !validateInsurance(insuranceCost) &&
     !validateCO2(co2) &&
     !validateFiscalValue(fiscalValue);
 
+  // Live depreciation preview — same logic the calculator uses
+  const depreciationPct = useMemo(() => {
+    if (!registrationDate || isNewCondition) return null;
+    const factor = getDepreciationFactor(registrationDate);
+    return Math.round((1 - factor) * 100);
+  }, [registrationDate, isNewCondition]);
+
+  const depreciatedValue = useMemo(() => {
+    const fv = parseFloat(fiscalValue);
+    if (!fv || isNaN(fv)) return null;
+    const factor = isNewCondition
+      ? 1
+      : getDepreciationFactor(registrationDate);
+    return Math.round(fv * factor);
+  }, [fiscalValue, registrationDate, isNewCondition]);
+
+  // Age in "X years Y months" — explains where the depreciation % comes from.
+  const vehicleAgeText = useMemo(() => {
+    if (!registrationDate) return null;
+    const [yStr, mStr] = registrationDate.split("-");
+    if (!yStr || !mStr) return null;
+    const today = new Date();
+    let months =
+      (today.getFullYear() - parseInt(yStr, 10)) * 12 +
+      (today.getMonth() + 1 - parseInt(mStr, 10));
+    if (months < 0) months = 0;
+    const years = Math.floor(months / 12);
+    const rem = months % 12;
+    if (years === 0) return `${rem} month${rem === 1 ? "" : "s"}`;
+    if (rem === 0) return `${years} year${years === 1 ? "" : "s"}`;
+    return `${years}y ${rem}mo`;
+  }, [registrationDate]);
+
+  // Effective tax base — what Hacienda actually uses to compute IEDMT/ITP.
+  // New car: invoice price. Used car: BOE × depreciation factor.
+  // Returns null until we have enough info (so the user sees a placeholder
+  // instead of a misleading full-BOE figure when the registration date is
+  // missing).
+  const taxBase = useMemo(() => {
+    const fv = parseFloat(fiscalValue);
+    const cp = parseFloat(price);
+    if (isNewCondition) {
+      return !isNaN(cp) && cp > 0 ? cp : null;
+    }
+    if (!registrationDate) return null;
+    if (isNaN(fv) || fv <= 0) return null;
+    const factor = getDepreciationFactor(registrationDate);
+    return Math.round(fv * factor);
+  }, [fiscalValue, price, registrationDate, isNewCondition]);
+
   const handleCalculate = useCallback(() => {
-    // Mark all as touched to show errors
-    setTouched({ price: true, transport: true, co2: true, fiscalValue: false });
+    setTouched({
+      price: true,
+      transport: true,
+      insurance: true,
+      co2: true,
+      fiscalValue: false,
+    });
 
     if (!isValid) return;
 
-    // Check daily limit for free users
     if (hasReachedLimit) {
       Alert.alert(
         t("limitReachedTitle") || "Daily Limit Reached",
@@ -141,19 +206,13 @@ export default function InputScreen() {
           `Free users can make ${FREE_DAILY_LIMIT} calculations per day. Upgrade to Pro for unlimited calculations!`,
         [
           { text: t("cancel") || "Cancel", style: "cancel" },
-          {
-            text: t("goPro") || "Go Pro",
-            onPress: () => router.push("/paywall"),
-          },
+          { text: t("goPro") || "Go Pro", onPress: () => router.push("/paywall") },
         ],
       );
       return;
     }
 
-    // Increment counter for free users
-    if (!isPro) {
-      incrementCount();
-    }
+    if (!isPro) incrementCount();
 
     router.push({
       pathname: "/result",
@@ -162,11 +221,14 @@ export default function InputScreen() {
         importType,
         needsHomologation: needsHomologation ? "true" : "false",
         transportCost: transportCost ? parseFloat(transportCost) : undefined,
+        insuranceCost: insuranceCost ? parseFloat(insuranceCost) : undefined,
         carPrice: parseFloat(price),
         officialFiscalValue: parseFloat(fiscalValue),
-        carAge: age,
+        registrationDate,
+        isNewCondition: isNewCondition ? "true" : "false",
         co2Emissions: parseFloat(co2),
         sellerType,
+        spanishRegion: selectedRegion,
         itpRate:
           sellerType === "private"
             ? (SPANISH_REGIONS.find((r) => r.name === selectedRegion)?.rate ??
@@ -183,9 +245,11 @@ export default function InputScreen() {
     importType,
     needsHomologation,
     transportCost,
+    insuranceCost,
     price,
     fiscalValue,
-    age,
+    registrationDate,
+    isNewCondition,
     co2,
     sellerType,
     selectedRegion,
@@ -199,9 +263,11 @@ export default function InputScreen() {
     setOriginCountry("Germany");
     setPrice("");
     setTransportCost("");
+    setInsuranceCost("");
     setFiscalValue("");
     setCo2("");
-    setAge("new");
+    setRegistrationDate("");
+    setIsNewCondition(false);
     setSellerType("dealer");
     setSelectedRegion("Madrid");
     setIsElectric(false);
@@ -209,10 +275,11 @@ export default function InputScreen() {
     setTouched({
       price: false,
       transport: false,
+      insurance: false,
       co2: false,
       fiscalValue: false,
     });
-    setResetKey((prev) => prev + 1); // Force autocomplete reset
+    setResetKey((p) => p + 1);
   };
 
   const handleVehicleSelected = (data: {
@@ -224,53 +291,15 @@ export default function InputScreen() {
     year?: number;
   }) => {
     setFiscalValue(data.value.toString());
-    setTouched((prev) => ({ ...prev, fiscalValue: true }));
-
-    // Auto-set CO2 to 0 for electric vehicles
+    setTouched((p) => ({ ...p, fiscalValue: true }));
     if (data.fuelType === "Elc") {
       setCo2("0");
       setIsElectric(true);
-      setTouched((prev) => ({ ...prev, co2: true }));
+      setTouched((p) => ({ ...p, co2: true }));
     } else {
       setIsElectric(false);
     }
-
-    // Auto-calculate age if year is provided
-    if (data.year) {
-      const currentYear = new Date().getFullYear();
-      const carYear = data.year;
-      const diff = currentYear - carYear;
-
-      let calculatedAge: CarAge = "new";
-      if (diff < 1) calculatedAge = "new";
-      else if (diff >= 1 && diff < 2) calculatedAge = "1_year";
-      else if (diff >= 2 && diff < 3) calculatedAge = "2_years";
-      else if (diff >= 3 && diff < 4) calculatedAge = "3_years";
-      else if (diff >= 4 && diff < 5) calculatedAge = "4_years";
-      else if (diff >= 5 && diff < 6) calculatedAge = "5_years";
-      else if (diff >= 6 && diff < 7) calculatedAge = "6_years";
-      else if (diff >= 7 && diff < 8) calculatedAge = "7_years";
-      else if (diff >= 8 && diff < 9) calculatedAge = "8_years";
-      else if (diff >= 9 && diff < 10) calculatedAge = "9_years";
-      else if (diff >= 10 && diff < 11) calculatedAge = "10_years";
-      else if (diff >= 11 && diff < 12) calculatedAge = "11_years";
-      else calculatedAge = "12_plus_years";
-
-      setAge(calculatedAge);
-    }
-  };
-
-  // Country flags
-  const countryFlags: Record<Country, string> = {
-    Germany: "🇩🇪",
-    France: "🇫🇷",
-    Italy: "🇮🇹",
-    Belgium: "🇧🇪",
-    Netherlands: "🇳🇱",
-    USA: "🇺🇸",
-    UAE: "🇦🇪",
-    Japan: "🇯🇵",
-    Korea: "🇰🇷",
+    if (data.year) setRegistrationDate(`${data.year}-01`);
   };
 
   const euCountries: Country[] = [
@@ -281,11 +310,14 @@ export default function InputScreen() {
     "Netherlands",
   ];
   const nonEuCountries: Country[] = ["USA", "UAE", "Japan", "Korea"];
+  const visibleCountries = importType === "EU" ? euCountries : nonEuCountries;
+
+  const iconColor = theme.brandBlue;
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1 }}>
       <Stack.Screen options={{ headerLeft: () => <HistoryButton /> }} />
-      {/* Language Switcher */}
+
       <LanguageSwitcher />
 
       <KeyboardAvoidingView
@@ -293,683 +325,640 @@ export default function InputScreen() {
         style={{ flex: 1 }}
         keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Import Type Toggle */}
-          <View style={styles.inputGroup}>
-            <View style={styles.segmentContainer}>
-              <Animated.View
-                style={[
-                  styles.segmentIndicator,
-                  {
-                    left: switchAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ["1%", "51%"],
-                    }),
-                  },
-                ]}
-              />
-              <Pressable
-                style={styles.segment}
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* ── Hero blurb ─────────────────────────────────────────── */}
+          <View style={{ marginBottom: Space.md, paddingHorizontal: 4 }}>
+            <Caption>CALCULATOR</Caption>
+            <Text
+              style={{
+                color: theme.textPrimary,
+                fontFamily: Fonts.sansExtraBold,
+                fontSize: 28,
+                letterSpacing: -0.7,
+                lineHeight: 32,
+                marginTop: 6,
+              }}
+            >
+              ImportEspaña
+            </Text>
+            <Text
+              style={{
+                color: theme.textSecondary,
+                fontFamily: Fonts.sansRegular,
+                fontSize: 14,
+                marginTop: 4,
+                lineHeight: 20,
+              }}
+            >
+              Estimate every cost of importing a car to Spain.
+            </Text>
+          </View>
+
+          {/* ── Import Type Pill ───────────────────────────────────── */}
+          <GlassCard style={styles.section}>
+            <PillGroup>
+              <Pill
+                active={importType === "EU"}
                 onPress={() => {
                   setImportType("EU");
                   setOriginCountry("Germany");
                 }}
               >
-                <Text
-                  style={[
-                    styles.segmentText,
-                    importType === "EU" && styles.segmentTextSelected,
-                  ]}
-                >
-                  {t("tabEU")}
-                </Text>
-              </Pressable>
-              <Pressable
-                style={styles.segment}
+                EU
+              </Pill>
+              <Pill
+                active={importType === "NonEU"}
                 onPress={() => {
                   setImportType("NonEU");
                   setOriginCountry("USA");
                   setNeedsHomologation(true);
                 }}
               >
-                <Text
-                  style={[
-                    styles.segmentText,
-                    importType === "NonEU" && styles.segmentTextSelected,
-                  ]}
-                >
-                  {t("tabNonEU")}
-                </Text>
-              </Pressable>
-            </View>
-          </View>
+                Non-EU
+              </Pill>
+            </PillGroup>
+          </GlassCard>
 
-          {/* Origin Country */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              <MapPin size={16} color={Colors.primary} /> {t("originCountry")}
-              <InfoTooltip text={t("originCountryInfo")} />
-            </Text>
-            <View style={styles.row}>
-              {(importType === "EU" ? euCountries : nonEuCountries).map((c) => (
-                <Pressable
+          {/* ── Origin Country ─────────────────────────────────────── */}
+          <GlassCard style={styles.section}>
+            <Label
+              icon={<MapPin size={16} color={iconColor} />}
+              trailing={<InfoTooltip text={t("originCountryInfo")} />}
+            >
+              {t("originCountry")}
+            </Label>
+            <View style={styles.chipRow}>
+              {visibleCountries.map((c) => (
+                <Chip
                   key={c}
-                  style={[
-                    styles.chip,
-                    originCountry === c && styles.chipSelected,
-                  ]}
+                  active={originCountry === c}
                   onPress={() => setOriginCountry(c)}
+                  style={{ flexBasis: "30%", flexGrow: 1 }}
                 >
-                  <Text
-                    style={[
-                      styles.chipText,
-                      originCountry === c && styles.chipTextSelected,
-                    ]}
-                  >
-                    {countryFlags[c]} {c}
-                  </Text>
-                </Pressable>
+                  {c}
+                </Chip>
               ))}
             </View>
-          </View>
+          </GlassCard>
 
-          {/* Price */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              <Euro size={16} color={Colors.primary} />{" "}
-              {importType === "NonEU" ? t("invoicePrice") : t("carPrice")}
-              <InfoTooltip text={t("carPriceInfo")} />
+          {/* ── Region (always visible — affects IEDMT brackets too) ─ */}
+          <GlassCard style={styles.section}>
+            <Label icon={<MapPin size={16} color={iconColor} />}>
+              {t("selectRegion") || "Spanish Region"}
+            </Label>
+            <Text
+              style={{
+                color: theme.textTertiary,
+                fontFamily: Fonts.sansRegular,
+                fontSize: 12,
+                marginTop: -4,
+                marginBottom: Space.sm,
+              }}
+            >
+              ITP &amp; IEDMT regional rates
             </Text>
-            <TextInput
-              style={[styles.input, errors.price && styles.inputError]}
+            <View style={styles.chipRow}>
+              {SPANISH_REGIONS.map((r) => (
+                <Chip
+                  key={r.name}
+                  active={selectedRegion === r.name}
+                  onPress={() => setSelectedRegion(r.name)}
+                  size="sm"
+                >
+                  {r.label}
+                </Chip>
+              ))}
+            </View>
+          </GlassCard>
+
+          {/* ── Vehicle Autocomplete ───────────────────────────────── */}
+          <GlassCard style={[styles.section, { zIndex: 50 }]}>
+            <VehicleAutocomplete
+              key={resetKey}
+              onVehicleSelected={handleVehicleSelected}
+            />
+          </GlassCard>
+
+          {/* ── Price ──────────────────────────────────────────────── */}
+          <GlassCard style={styles.section}>
+            <Label
+              icon={<Euro size={16} color={iconColor} />}
+              trailing={<InfoTooltip text={t("carPriceInfo")} />}
+            >
+              {importType === "NonEU" ? t("invoicePrice") : t("carPrice")}
+            </Label>
+            <Input
+              testID="price-input"
               keyboardType="numeric"
               placeholder="25000"
               value={price}
               onChangeText={setPrice}
-              onBlur={() => setTouched((prev) => ({ ...prev, price: true }))}
+              onBlur={() => setTouched((p) => ({ ...p, price: true }))}
+              error={!!errors.price}
             />
-            {errors.price && (
-              <View style={styles.errorContainer}>
-                <AlertCircle size={14} color="#DC2626" />
-                <Text style={styles.errorText}>{errors.price}</Text>
-              </View>
-            )}
-          </View>
+            {errors.price && <ErrorText text={errors.price} />}
+          </GlassCard>
 
-          {/* Transport Cost (Non-EU) */}
+          {/* ── Non-EU: Transport / Insurance / Homologation ───────── */}
           {importType === "NonEU" && (
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                <Ship size={16} color={Colors.primary} /> {t("transportCost")}
-              </Text>
-              <TextInput
-                style={[styles.input, errors.transport && styles.inputError]}
+            <GlassCard style={styles.section}>
+              <Label icon={<Ship size={16} color={iconColor} />}>
+                {t("transportCost")}
+              </Label>
+              <Input
+                testID="transport-input"
                 keyboardType="numeric"
                 placeholder="1500"
                 value={transportCost}
                 onChangeText={setTransportCost}
                 onBlur={() =>
-                  setTouched((prev) => ({ ...prev, transport: true }))
+                  setTouched((p) => ({ ...p, transport: true }))
                 }
+                error={!!errors.transport}
               />
-              {errors.transport && (
-                <View style={styles.errorContainer}>
-                  <AlertCircle size={14} color="#DC2626" />
-                  <Text style={styles.errorText}>{errors.transport}</Text>
-                </View>
-              )}
-            </View>
-          )}
+              {errors.transport && <ErrorText text={errors.transport} />}
 
-          {/* Homologation Checkbox (Non-EU) */}
-          {importType === "NonEU" && (
-            <Pressable
-              style={styles.checkboxContainer}
-              onPress={() => setNeedsHomologation(!needsHomologation)}
-            >
-              <View style={{ marginRight: 12 }}>
+              <View style={{ height: Space.md }} />
+
+              <Label icon={<Shield size={16} color={iconColor} />}>
+                Marine cargo insurance (€)
+              </Label>
+              <Input
+                testID="insurance-input"
+                keyboardType="numeric"
+                placeholder={`~${Math.max(
+                  Math.round((parseFloat(price) || 0) * 0.005),
+                  100,
+                )} (auto-estimate if blank)`}
+                value={insuranceCost}
+                onChangeText={setInsuranceCost}
+                onBlur={() =>
+                  setTouched((p) => ({ ...p, insurance: true }))
+                }
+                error={!!errors.insurance}
+              />
+              {errors.insurance && <ErrorText text={errors.insurance} />}
+
+              <View style={{ height: Space.md }} />
+
+              <Tap
+                onPress={() => setNeedsHomologation(!needsHomologation)}
+                style={[
+                  styles.checkRow,
+                  {
+                    borderColor: needsHomologation
+                      ? theme.pillActiveBorder
+                      : theme.glassBorder,
+                    backgroundColor: needsHomologation
+                      ? theme.pillActiveBg
+                      : theme.glassBg,
+                  },
+                ]}
+              >
                 {needsHomologation ? (
-                  <CheckSquare size={24} color={Colors.primary} />
+                  <CheckSquare size={22} color={theme.brandBlueLight} />
                 ) : (
-                  <Square size={24} color={Colors.textLight} />
+                  <Square size={22} color={theme.textTertiary} />
                 )}
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.checkboxLabel}>
-                  {t("homologation")}
-                  <InfoTooltip text={t("homologationInfo")} />
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: Colors.textLight,
-                    marginTop: 2,
-                  }}
-                >
-                  ~1500€
-                </Text>
-              </View>
-            </Pressable>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      color: theme.textPrimary,
+                      fontFamily: Fonts.sansSemibold,
+                      fontSize: 14,
+                    }}
+                  >
+                    {t("homologation")}
+                  </Text>
+                  <Text
+                    style={{
+                      color: theme.textTertiary,
+                      fontFamily: Fonts.sansRegular,
+                      fontSize: 12,
+                      marginTop: 2,
+                    }}
+                  >
+                    ~1500€
+                  </Text>
+                </View>
+                <InfoTooltip text={t("homologationInfo")} />
+              </Tap>
+            </GlassCard>
           )}
 
-          {/* Vehicle Search - Auto-fills Fiscal Value */}
-          <View style={{ zIndex: 10, marginBottom: 24 }}>
-            <VehicleAutocomplete
-              key={resetKey}
-              onVehicleSelected={handleVehicleSelected}
-            />
-          </View>
-
-          {/* Show fiscal value if set */}
-          {fiscalValue && !errors.fiscalValue && (
-            <View style={styles.fiscalValueDisplay}>
-              <Text style={styles.fiscalValueLabel}>
-                💰 {t("boeNewValue")}
-                <InfoTooltip text={t("fiscalInfo")} />
-              </Text>
-              <Text style={styles.fiscalValueAmount}>
-                €{parseFloat(fiscalValue).toLocaleString("de-DE")}
-              </Text>
-            </View>
-          )}
-
-          {/* CO2 */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              <Gauge size={16} color={Colors.primary} /> {t("co2")}
-              <InfoTooltip text={t("co2Info")} />
-            </Text>
+          {/* ── CO2 ────────────────────────────────────────────────── */}
+          <GlassCard style={styles.section}>
+            <Label
+              icon={<Gauge size={16} color={iconColor} />}
+              trailing={<InfoTooltip text={t("co2Info")} />}
+            >
+              {t("co2")}
+            </Label>
             {isElectric && (
-              <View style={styles.evHint}>
-                <Text style={styles.evHintText}>{t("evDetected")}</Text>
+              <View style={{ marginBottom: Space.sm }}>
+                <Badge tone="success">{t("evDetected")}</Badge>
               </View>
             )}
-            <TextInput
-              style={[styles.input, errors.co2 && styles.inputError]}
+            <Input
+              testID="co2-input"
               keyboardType="numeric"
               placeholder="145"
               value={co2}
-              onChangeText={(text) => {
-                setCo2(text);
-                if (text !== "0") setIsElectric(false);
+              onChangeText={(v) => {
+                setCo2(v);
+                if (v !== "0") setIsElectric(false);
               }}
-              onBlur={() => setTouched((prev) => ({ ...prev, co2: true }))}
+              onBlur={() => setTouched((p) => ({ ...p, co2: true }))}
+              error={!!errors.co2}
             />
-            {errors.co2 && (
-              <View style={styles.errorContainer}>
-                <AlertCircle size={14} color="#DC2626" />
-                <Text style={styles.errorText}>{errors.co2}</Text>
-              </View>
-            )}
-          </View>
+            {errors.co2 && <ErrorText text={errors.co2} />}
+          </GlassCard>
 
-          {/* Age */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              <GraduationCap size={16} color={Colors.primary} /> {t("age")}
-              <InfoTooltip text={t("ageInfo")} />
-            </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {(
-                [
-                  "new",
-                  "1_year",
-                  "2_years",
-                  "3_years",
-                  "4_years",
-                  "5_years",
-                  "6_years",
-                  "7_years",
-                  "8_years",
-                  "9_years",
-                  "10_years",
-                  "11_years",
-                  "12_plus_years",
-                ] as CarAge[]
-              ).map((a) => (
-                <Pressable
-                  key={a}
-                  style={[styles.chip, age === a && styles.chipSelected]}
-                  onPress={() => setAge(a)}
+          {/* ── First Registration / Condition ─────────────────────── */}
+          <GlassCard style={styles.section}>
+            <Label
+              icon={<CalendarDays size={16} color={iconColor} />}
+              trailing={<InfoTooltip text={t("ageInfo")} />}
+            >
+              {t("age") || "First Registration (Month/Year)"}
+            </Label>
+            <MonthYearPicker
+              value={registrationDate}
+              onChange={setRegistrationDate}
+            />
+
+            <View style={{ height: Space.md }} />
+
+            <Tap
+              onPress={() => setIsNewCondition(!isNewCondition)}
+              style={[
+                styles.checkRow,
+                {
+                  borderColor: isNewCondition
+                    ? theme.pillActiveBorder
+                    : theme.glassBorder,
+                  backgroundColor: isNewCondition
+                    ? theme.pillActiveBg
+                    : theme.glassBg,
+                },
+              ]}
+            >
+              {isNewCondition ? (
+                <CheckSquare size={22} color={theme.brandBlueLight} />
+              ) : (
+                <Square size={22} color={theme.textTertiary} />
+              )}
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    color: theme.textPrimary,
+                    fontFamily: Fonts.sansSemibold,
+                    fontSize: 14,
+                  }}
                 >
-                  <Text
-                    style={[
-                      styles.chipText,
-                      age === a && styles.chipTextSelected,
-                    ]}
-                  >
-                    {a === "new"
-                      ? "New"
-                      : a
-                          .replace(/_/g, " ")
-                          .replace("years", "yrs")
-                          .replace("plus", "+")}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
+                  {t("isNew") || "Condition is completely new (0 km)"}
+                </Text>
+                <Text
+                  style={{
+                    color: theme.textTertiary,
+                    fontFamily: Fonts.sansRegular,
+                    fontSize: 12,
+                    marginTop: 2,
+                  }}
+                >
+                  {t("isNewInfo") || "Less than 6000km and 6 months old"}
+                </Text>
+              </View>
+            </Tap>
+          </GlassCard>
 
-          {/* Depreciated Value Display */}
-          {fiscalValue && age !== "new" && (
-            <View style={styles.depreciatedValueDisplay}>
-              <Text style={styles.depreciatedLabel}>
-                📉 {t("depreciatedValue")}
-              </Text>
-              <Text style={styles.depreciatedSubtext}>
-                €{parseFloat(fiscalValue).toLocaleString("de-DE")} ×{" "}
-                {(DEPRECIATION_TABLE[age] * 100).toFixed(0)}% ={" "}
-              </Text>
-              <Text style={styles.depreciatedAmount}>
-                €
-                {(
-                  parseFloat(fiscalValue) * DEPRECIATION_TABLE[age]
-                ).toLocaleString("de-DE", { maximumFractionDigits: 0 })}
-              </Text>
-              <Text style={styles.depreciatedHint}>{t("depreciatedHint")}</Text>
-            </View>
+          {/* ── Vehicle Valuation (live: BOE × Depreciation = Tax Base) ─ */}
+          {(fiscalValue || isNewCondition) && !errors.fiscalValue && (
+            <GlassCard style={styles.section}>
+              <View style={styles.valuationHeader}>
+                <Coins size={16} color={iconColor} />
+                <Text
+                  style={{
+                    color: theme.textPrimary,
+                    fontFamily: Fonts.sansBold,
+                    fontSize: 15,
+                    flex: 1,
+                  }}
+                >
+                  Vehicle Valuation
+                </Text>
+                <InfoTooltip text={t("fiscalInfo")} />
+              </View>
+
+              {/* BOE new value */}
+              {fiscalValue && (
+                <ValuationRow
+                  label={t("boeNewValue")}
+                  value={`€${parseFloat(fiscalValue).toLocaleString("de-DE")}`}
+                  sublabel={
+                    isNewCondition
+                      ? "Not used — new car uses invoice price"
+                      : "Original new-vehicle value (Hacienda BOE)"
+                  }
+                />
+              )}
+
+              {/* Depreciation — only shown for used cars */}
+              {!isNewCondition && (
+                <>
+                  <Divider style={{ marginVertical: 10 }} />
+                  <ValuationRow
+                    label={t("depreciation")}
+                    value={
+                      depreciationPct !== null
+                        ? `−${depreciationPct}%`
+                        : "—"
+                    }
+                    sublabel={
+                      vehicleAgeText
+                        ? `${vehicleAgeText} old`
+                        : "Set first registration date above"
+                    }
+                  />
+                </>
+              )}
+
+              {/* The headline — tax base used by Hacienda */}
+              <Divider style={{ marginVertical: 10 }} />
+              <View style={styles.taxBaseBlock}>
+                <Caption>{t("taxBase")} (Base Imponible)</Caption>
+                <Text
+                  style={{
+                    color: taxBase ? theme.brandBlueLight : theme.textTertiary,
+                    fontFamily: Fonts.monoBold,
+                    fontSize: 36,
+                    letterSpacing: -1,
+                    marginTop: 6,
+                    marginBottom: 6,
+                  }}
+                >
+                  {taxBase != null
+                    ? `€${taxBase.toLocaleString("de-DE")}`
+                    : "—"}
+                </Text>
+                <Text
+                  style={{
+                    color: theme.textTertiary,
+                    fontFamily: Fonts.sansRegular,
+                    fontSize: 12,
+                    textAlign: "center",
+                    lineHeight: 17,
+                  }}
+                >
+                  {isNewCondition
+                    ? "New car — invoice price is used directly. IEDMT is calculated from this value."
+                    : "Spain calculates IEDMT and ITP from this. It updates as you change the registration date above."}
+                </Text>
+              </View>
+            </GlassCard>
           )}
 
-          {/* Seller Type (Only for EU) */}
-          {importType === "EU" && (
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>
-                <User size={16} color={Colors.primary} /> {t("sellerType")}
-                <InfoTooltip text={t("sellerTypeInfo")} />
-              </Text>
-              <View style={styles.segmentContainer}>
-                <Pressable
-                  style={[
-                    styles.segment,
-                    sellerType === "dealer" && styles.segmentSelected,
-                  ]}
+          {/* ── Seller Type (EU + Used) ────────────────────────────── */}
+          {importType === "EU" && !isNewCondition && (
+            <GlassCard style={styles.section}>
+              <Label
+                icon={<User size={16} color={iconColor} />}
+                trailing={<InfoTooltip text={t("sellerTypeInfo")} />}
+              >
+                {t("sellerType")}
+              </Label>
+              <PillGroup>
+                <Pill
+                  active={sellerType === "dealer"}
                   onPress={() => setSellerType("dealer")}
                 >
-                  <Text
-                    style={[
-                      styles.segmentText,
-                      sellerType === "dealer" && styles.segmentTextSelected,
-                    ]}
-                  >
-                    {t("dealer")}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  style={[
-                    styles.segment,
-                    sellerType === "private" && styles.segmentSelected,
-                  ]}
+                  {t("dealer")}
+                </Pill>
+                <Pill
+                  active={sellerType === "private"}
                   onPress={() => setSellerType("private")}
                 >
-                  <Text
-                    style={[
-                      styles.segmentText,
-                      sellerType === "private" && styles.segmentTextSelected,
-                    ]}
-                  >
-                    {t("private")}
-                  </Text>
-                </Pressable>
-              </View>
+                  {t("private")}
+                </Pill>
+              </PillGroup>
               {sellerType === "private" && (
-                <Text style={styles.infoText}>{t("privateSaleWarning")}</Text>
-              )}
-              {sellerType === "private" && (
-                <View style={{ marginTop: 12 }}>
-                  <Text style={[styles.label, { marginBottom: 8 }]}>
-                    📍 {t("selectRegion") || "Region (Comunidad Autónoma)"}
-                  </Text>
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    style={{ marginHorizontal: -4 }}
-                  >
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        flexWrap: "wrap",
-                        gap: 6,
-                        paddingHorizontal: 4,
-                      }}
-                    >
-                      {SPANISH_REGIONS.map((region) => (
-                        <Pressable
-                          key={region.name}
-                          onPress={() => setSelectedRegion(region.name)}
-                          style={[
-                            {
-                              paddingHorizontal: 12,
-                              paddingVertical: 8,
-                              borderRadius: 8,
-                              borderWidth: 1,
-                              borderColor:
-                                selectedRegion === region.name
-                                  ? Colors.primary
-                                  : Colors.border,
-                              backgroundColor:
-                                selectedRegion === region.name
-                                  ? "#E6F0FF"
-                                  : Colors.white,
-                            },
-                          ]}
-                        >
-                          <Text
-                            style={{
-                              fontSize: 13,
-                              fontWeight:
-                                selectedRegion === region.name ? "700" : "500",
-                              color:
-                                selectedRegion === region.name
-                                  ? Colors.primary
-                                  : Colors.text,
-                            }}
-                          >
-                            {region.label}
-                          </Text>
-                        </Pressable>
-                      ))}
-                    </View>
-                  </ScrollView>
+                <View style={{ marginTop: Space.sm }}>
+                  <Badge tone="warning">{t("privateSaleWarning")}</Badge>
                 </View>
               )}
-            </View>
+            </GlassCard>
           )}
 
-          {/* Info Footer */}
-          <View style={styles.infoFooter}>
-            <Pressable
+          {/* ── Footer Links ────────────────────────────────────────── */}
+          <View style={styles.footerLinks}>
+            <Tap
               onPress={() =>
                 Linking.openURL("https://importespana.com/privacy")
               }
             >
-              <Text style={styles.infoFooterLink}>{t("privacyPolicy")}</Text>
-            </Pressable>
-            <Text style={styles.infoFooterDot}>·</Text>
-            <Pressable
+              <Text style={[styles.linkText, { color: theme.textSecondary }]}>
+                {t("privacyPolicy")}
+              </Text>
+            </Tap>
+            <Text style={{ color: theme.textTertiary }}>·</Text>
+            <Tap
               onPress={() => Linking.openURL("https://importespana.com/terms")}
             >
-              <Text style={styles.infoFooterLink}>{t("termsOfService")}</Text>
-            </Pressable>
+              <Text style={[styles.linkText, { color: theme.textSecondary }]}>
+                {t("termsOfService")}
+              </Text>
+            </Tap>
             {!isPro && (
               <>
-                <Text style={styles.infoFooterDot}>·</Text>
-                <Pressable
-                  onPress={() => {
-                    restorePurchases();
-                  }}
-                >
-                  <Text style={styles.infoFooterLink}>
+                <Text style={{ color: theme.textTertiary }}>·</Text>
+                <Tap onPress={() => restorePurchases()}>
+                  <Text style={[styles.linkText, { color: theme.textSecondary }]}>
                     {t("restorePurchases")}
                   </Text>
-                </Pressable>
+                </Tap>
               </>
             )}
           </View>
 
-          <View style={{ height: 100 }} />
+          <View style={{ height: 140 }} />
         </ScrollView>
 
-        {/* Footer Buttons */}
-        <View style={styles.footer}>
+        {/* ── Sticky Footer ─────────────────────────────────────────── */}
+        <View
+          style={[
+            styles.footer,
+            {
+              backgroundColor: theme.background,
+              borderTopColor: theme.glassBorder,
+            },
+          ]}
+        >
           {!isPro && (
-            <Text
+            <View
               style={{
-                textAlign: "center",
-                fontSize: 12,
-                color: hasReachedLimit ? "#DC2626" : Colors.textLight,
-                marginBottom: 6,
-                fontWeight: hasReachedLimit ? "600" : "400",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                marginBottom: 8,
               }}
             >
-              {hasReachedLimit
-                ? `⚠️ ${t("limitReachedTitle")}`
-                : `${remaining}/${FREE_DAILY_LIMIT} ${t("calculationsRemaining")}`}
-            </Text>
+              {hasReachedLimit && (
+                <AlertCircle size={14} color={theme.error} />
+              )}
+              <Text
+                style={{
+                  textAlign: "center",
+                  fontFamily: Fonts.sansSemibold,
+                  fontSize: 12,
+                  color: hasReachedLimit ? theme.error : theme.textSecondary,
+                  letterSpacing: 0.4,
+                }}
+              >
+                {hasReachedLimit
+                  ? t("limitReachedTitle")
+                  : `${remaining}/${FREE_DAILY_LIMIT} ${t("calculationsRemaining")}`}
+              </Text>
+            </View>
           )}
-          <View style={styles.buttonRow}>
-            <Pressable
-              style={styles.resetButton}
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <SecondaryButton
+              testID="reset-button"
               onPress={handleReset}
-              hitSlop={10}
-            >
-              <RotateCcw size={20} color={Colors.textLight} />
-            </Pressable>
-            <Pressable
-              style={[styles.button, !isValid && styles.buttonDisabled]}
-              onPress={handleCalculate}
-            >
-              <Text style={styles.buttonText}>{t("calculate")}</Text>
-            </Pressable>
+              icon={<RotateCcw size={18} color={theme.textSecondary} />}
+            />
+            <View style={{ flex: 1 }}>
+              <PrimaryButton
+                testID="calculate-button"
+                onPress={handleCalculate}
+                disabled={!isValid}
+                full
+              >
+                {t("calculate")}
+              </PrimaryButton>
+            </View>
           </View>
         </View>
       </KeyboardAvoidingView>
+    </View>
+  );
+}
 
-      {/* AdBanner */}
-      {!isPro && (
-        <View style={{ alignItems: "center", backgroundColor: "#fff" }}>
-          <BannerAd
-            unitId={AdUnits.BANNER}
-            size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-          />
-        </View>
-      )}
+function ValuationRow({
+  label,
+  value,
+  sublabel,
+}: {
+  label: string;
+  value: string;
+  sublabel?: string;
+}) {
+  const { theme } = useTheme();
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+      }}
+    >
+      <View style={{ flex: 1 }}>
+        <Caption>{label}</Caption>
+        {sublabel && (
+          <Text
+            style={{
+              color: theme.textTertiary,
+              fontFamily: Fonts.sansRegular,
+              fontSize: 11,
+              marginTop: 2,
+              lineHeight: 15,
+            }}
+          >
+            {sublabel}
+          </Text>
+        )}
+      </View>
+      <Text
+        style={{
+          color: theme.textPrimary,
+          fontFamily: Fonts.monoBold,
+          fontSize: 18,
+          letterSpacing: -0.3,
+        }}
+      >
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+function ErrorText({ text }: { text: string }) {
+  const { theme } = useTheme();
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+        marginTop: 6,
+      }}
+    >
+      <AlertCircle size={14} color={theme.error} />
+      <Text
+        style={{
+          color: theme.error,
+          fontSize: 12,
+          fontFamily: Fonts.sansMedium,
+        }}
+      >
+        {text}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  checkboxContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginBottom: 24,
-    backgroundColor: Colors.white,
-    padding: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  checkboxLabel: {
-    fontSize: 16,
-    color: Colors.text,
-    flex: 1,
-  },
-  scrollContent: { padding: 20 },
-  inputGroup: { marginBottom: 24 },
-  label: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: Colors.text,
-    marginBottom: 8,
+  scroll: { padding: Space.md, paddingBottom: 32 },
+  section: { marginBottom: Space.md },
+  valuationHeader: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    marginBottom: 14,
   },
-  row: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  input: {
-    backgroundColor: Colors.white,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 18,
+  taxBaseBlock: {
+    alignItems: "center",
+    paddingVertical: 6,
   },
-  inputError: {
-    borderColor: "#DC2626",
-    borderWidth: 2,
-  },
-  errorContainer: {
+  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  checkRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    marginTop: 6,
-  },
-  errorText: {
-    color: "#DC2626",
-    fontSize: 13,
-  },
-  chip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: Colors.white,
+    gap: 12,
+    padding: 14,
+    borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border,
-    marginBottom: 4,
-  },
-  chipSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  chipText: { color: Colors.text },
-  chipTextSelected: { color: Colors.white, fontWeight: "bold" },
-  segmentContainer: {
-    flexDirection: "row",
-    backgroundColor: Colors.border,
-    borderRadius: 8,
-    padding: 2,
-    position: "relative",
-    height: 48,
-  },
-  segmentIndicator: {
-    position: "absolute",
-    top: 2,
-    bottom: 2,
-    width: "48%",
-    backgroundColor: Colors.white,
-    borderRadius: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  segment: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 6,
-    zIndex: 1,
-  },
-  segmentSelected: { backgroundColor: "transparent" },
-  segmentText: { color: Colors.text },
-  segmentTextSelected: { fontWeight: "bold", color: Colors.primary },
-  infoText: { marginTop: 8, color: "#D97706", fontSize: 12 },
-  fiscalValueDisplay: {
-    backgroundColor: "#E6F4FE",
-    padding: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    zIndex: 1,
-    elevation: 2,
-  },
-  fiscalValueLabel: {
-    fontSize: 14,
-    color: Colors.textLight,
-    marginBottom: 4,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  depreciatedValueDisplay: {
-    backgroundColor: "#FFF7ED",
-    padding: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#FDBA74",
-  },
-  depreciatedLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#9A3412",
-    marginBottom: 4,
-  },
-  depreciatedSubtext: {
-    fontSize: 13,
-    color: "#C2410C",
-    marginBottom: 2,
-  },
-  depreciatedAmount: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#C2410C",
-    marginBottom: 4,
-  },
-  depreciatedHint: {
-    fontSize: 11,
-    color: "#9A3412",
-    textAlign: "center",
-    fontStyle: "italic",
-  },
-  fiscalValueAmount: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: Colors.primary,
-  },
-  evHint: {
-    backgroundColor: "#D1FAE5",
-    padding: 8,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  evHintText: {
-    color: "#065F46",
-    fontSize: 13,
-    fontWeight: "500",
   },
   footer: {
-    position: "absolute",
-    bottom: 0, // Increased from 60 to avoid ad overlap
-    left: 0,
-    right: 0,
-    padding: 20,
+    paddingHorizontal: Space.md,
+    paddingTop: Space.md,
+    paddingBottom: Space.lg,
+    borderTopWidth: 1,
   },
-  buttonRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  button: {
-    flex: 1,
-    backgroundColor: Colors.primary,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  resetButton: {
-    backgroundColor: Colors.white,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: Colors.border,
-    width: 56,
-  },
-  buttonDisabled: { backgroundColor: "#CBD5E1", opacity: 0.6 },
-  buttonText: { fontSize: 18, fontWeight: "bold", color: Colors.white },
-  infoFooter: {
+  footerLinks: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     flexWrap: "wrap",
-    paddingVertical: 16,
-    gap: 4,
+    paddingVertical: Space.md,
+    gap: 8,
   },
-  infoFooterLink: {
+  linkText: {
     fontSize: 12,
-    color: Colors.textLight,
+    fontFamily: Fonts.sansMedium,
     textDecorationLine: "underline",
-  },
-  infoFooterDot: {
-    fontSize: 12,
-    color: Colors.textLight,
-    marginHorizontal: 4,
   },
 });

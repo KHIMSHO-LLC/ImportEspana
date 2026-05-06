@@ -1,0 +1,22 @@
+# Language switcher: tapping ES re-renders Spanish copy on the calculator.
+appId: com.gio-khimsho.ImportEspana
+tags:
+  - smoke
+  - regression
+---
+- runFlow: _setup.yaml
+
+- assertVisible: "Origin Country"
+
+# Switch to Spanish.
+- tapOn: "ES"
+- assertVisible: "País de Origen"
+- assertNotVisible: "Origin Country"
+
+# And to French.
+- tapOn: "FR"
+- assertVisible: "Pays d'origine"
+
+# And back to English.
+- tapOn: "EN"
+- assertVisible: "Origin Country"

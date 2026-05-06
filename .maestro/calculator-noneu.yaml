@@ -1,0 +1,85 @@
+# Non-EU import path (USA → Madrid). Validates the extra inputs (transport,
+# insurance, homologation) only show in Non-EU mode and feed into the result.
+appId: com.gio-khimsho.ImportEspana
+tags:
+  - smoke
+  - regression
+---
+- runFlow: _setup.yaml
+
+# Switch to Non-EU.
+- tapOn: "Non-EU"
+- assertVisible: "USA"
+
+# Country.
+- tapOn: "USA"
+
+# Region.
+- tapOn: "Madrid · 4%"
+
+# Manual fiscal value.
+- scrollUntilVisible:
+    element:
+      id: "vehicle-manual-toggle"
+    centerElement: true
+- tapOn:
+    id: "vehicle-manual-toggle"
+- tapOn:
+    id: "manual-value-input"
+- inputText: "45000"
+- pressKey: Enter
+
+# Invoice price.
+- scrollUntilVisible:
+    element:
+      id: "price-input"
+    centerElement: true
+- tapOn:
+    id: "price-input"
+- inputText: "30000"
+- pressKey: Enter
+
+# Transport.
+- scrollUntilVisible:
+    element:
+      id: "transport-input"
+    centerElement: true
+- tapOn:
+    id: "transport-input"
+- inputText: "1500"
+- pressKey: Enter
+
+# Insurance.
+- scrollUntilVisible:
+    element:
+      id: "insurance-input"
+    centerElement: true
+- tapOn:
+    id: "insurance-input"
+- inputText: "200"
+- pressKey: Enter
+# Sanity check that the previous inputs survived state updates before we
+# scroll to CO2 — also gives the keyboard a moment to settle.
+- assertVisible: "200"
+- assertVisible: "1500"
+- assertVisible: "30000"
+
+# CO2.
+- scrollUntilVisible:
+    element:
+      id: "co2-input"
+    centerElement: true
+- tapOn:
+    id: "co2-input"
+- inputText: "180"
+- pressKey: Enter
+
+# Calculate.
+- tapOn:
+    id: "calculate-button"
+
+# Result must include duty + VAT lines (Non-EU specific).
+- assertVisible:
+    id: "result-total"
+- assertVisible: "Duty (10%)"
+- assertVisible: "VAT (21%)"

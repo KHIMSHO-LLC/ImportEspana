@@ -1,0 +1,57 @@
+# Free-tier daily limit: after 5 calculations the calculate button must trigger
+# the limit-reached alert instead of pushing /result.
+#
+# Note: assumes a NON-Pro state. If you've sandbox-purchased Pro on this
+# simulator, run `xcrun simctl uninstall booted com.gio-khimsho.ImportEspana`
+# before running.
+appId: com.gio-khimsho.ImportEspana
+tags:
+  - regression
+---
+- runFlow: _setup.yaml
+
+# Fill the form once. Same values are reused for each of the 5 calculations.
+- tapOn: "Germany"
+- tapOn: "Madrid · 4%"
+- scrollUntilVisible:
+    element:
+      id: "vehicle-manual-toggle"
+- tapOn:
+    id: "vehicle-manual-toggle"
+- tapOn:
+    id: "manual-value-input"
+- inputText: "30000"
+- pressKey: Enter
+- scrollUntilVisible:
+    element:
+      id: "price-input"
+- tapOn:
+    id: "price-input"
+- inputText: "20000"
+- pressKey: Enter
+- scrollUntilVisible:
+    element:
+      id: "co2-input"
+- tapOn:
+    id: "co2-input"
+- inputText: "150"
+- pressKey: Enter
+
+# 5 successful calculations: tap calculate, assert result, navigate back.
+- repeat:
+    times: 5
+    commands:
+      - tapOn:
+          id: "calculate-button"
+      - extendedWaitUntil:
+          visible:
+            id: "result-total"
+          timeout: 8000
+      # iOS native back via the header chevron.
+      - tapOn: "index"
+
+# 6th attempt should hit the limit gate.
+- tapOn:
+    id: "calculate-button"
+- assertVisible: "Daily Limit Reached"
+- tapOn: "Cancel"
