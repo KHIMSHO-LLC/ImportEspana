@@ -1,0 +1,14 @@
+# Shared boot sequence: launch with clean state, dismiss the EEA consent
+# dialog (UMP/IAB) that AdMob shows on every fresh install in dev mode,
+# then force English so visible-text assertions are stable.
+appId: com.gio-khimsho.ImportEspana
+---
+- launchApp:
+    clearState: true
+# UMP consent form takes a moment to surface after AdMob init. Allow extra
+# time for cold Metro bundles on first run.
+- extendedWaitUntil:
+    visible: "Do not consent"
+    timeout: 60000
+- tapOn: "Do not consent"
+- tapOn: "EN"

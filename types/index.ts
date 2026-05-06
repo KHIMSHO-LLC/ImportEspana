@@ -3,7 +3,13 @@ export type Country =
   | "France"
   | "Italy"
   | "Belgium"
-  | "Netherlands";
+  | "Netherlands"
+  | "USA"
+  | "UAE"
+  | "Japan"
+  | "Korea";
+
+export type ImportType = "EU" | "NonEU";
 
 export type CarAge =
   | "new"
@@ -21,27 +27,51 @@ export type CarAge =
   | "12_plus_years";
 
 export interface CalculationInput {
+  importType?: ImportType;
   originCountry: Country;
-  carPrice: number; // Purchase Price (Market Value)
-  officialFiscalValue: number; // BOE Value (Brand new value according to Hacienda)
-  carAge: CarAge;
+  carPrice: number;
+  officialFiscalValue: number;
+  carAge?: CarAge;
+  registrationDate?: string;
+  isNewCondition?: boolean;
   co2Emissions: number;
   sellerType: "dealer" | "private";
   transportCost?: number;
-  itpRate?: number; // Regional Transfer Tax Rate (Default 0.04)
+  insuranceCost?: number;
+  itpRate?: number;
+  spanishRegion?: string;
+  customsAgentFee?: number;
+  needsHomologation?: boolean;
+  brand?: string;
+  model?: string;
 }
+
+export type ItpExemptReasonCode =
+  | "special_territory"
+  | "cat_zero_emissions"
+  | "cat_old_low_value"
+  | "and_zero_emissions";
 
 export interface CalculationResult {
   purchasePrice: number;
-  taxBase: number; // Base Imponible (Fiscal Value * Depreciation)
-  registrationTax: number; // IEDMT
-  itpTax: number; // ITP (if private)
+  taxBase: number;
+  marketValue: number;
+  registrationTax: number;
+  itpTax: number;
+  itpRateApplied: number;
+  itpExemptReason?: ItpExemptReasonCode;
+  duty?: number;
+  vat?: number;
+  customsAgentFee?: number;
+  homologationFee?: number;
   dgtFee: number;
   itvFee: number;
   platesFee: number;
   transportCost: number;
-  totalImportTaxes: number; // Sum of taxes/fees (excluding car price)
-  totalCost: number; // Final Check to write
+  totalImportTaxes: number;
+  totalCost: number;
   taxRateApplied: number;
-  depreciationPercentage: number; // The % value RETAINED (e.g., 0.84)
+  depreciationPercentage: number;
+  auditRisk: "low" | "medium" | "high";
+  auditRiskRatio: number;
 }

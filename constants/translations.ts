@@ -11,12 +11,15 @@ export const translations = {
     yearOptional: "Vehicle Year (optional)",
     co2: "CO2 Emissions (g/km)",
     age: "Car Age",
+    isNew: "Condition is completely new (0 km)",
+    isNewInfo: "Less than 6000km and 6 months old",
     sellerType: "Seller Type",
     dealer: "Dealer",
     private: "Private",
     calculate: "Calculate Total Cost",
     // Hints & Errors
-    privateSaleWarning: "⚠️ Private sales may incur 4% ITP tax.",
+    privateSaleWarning:
+      "⚠️ Private sales incur ITP tax (rate varies by region).",
     evDetected: "⚡ Electric Vehicle Detected - CO2 = 0",
     priceError: "Enter a valid price",
     co2Error: "Enter CO2 emissions",
@@ -36,14 +39,13 @@ export const translations = {
     dgt: "DGT Fee",
     itv: "ITV Inspection",
     plates: "Plates & Admin",
-    totalImportCost: "Total Import Cost",
+    totalImportCost: "Spanish Taxes & Fees",
+    grandTotal: "TOTAL",
     calculationDetails: "Calculation Details",
     depreciation: "Depreciation Applied:",
     taxBase: "Tax Base:",
     taxRate: "Tax Rate:",
     saveDownload: "Save & Download PDF",
-    watchAd: "📺 Watch a short ad to download",
-    loadingAd: "(Loading...)",
     // PDF
     pdfTitle: "Import Cost Estimate",
     // Tooltips
@@ -59,7 +61,45 @@ export const translations = {
     sellerTypeInfo:
       "Buying from a Dealer avoids ITP tax. Buying from a Private Seller incurs 4% ITP.",
     fiscalInfo:
-      "The official value assigned by the Spanish tax authority (BOE).",
+      "The official NEW car value from the BOE (Boletín Oficial del Estado). This is the reference price before depreciation is applied based on the car's age.",
+    boeNewValue: "BOE Value (New Price)",
+    // Daily limit
+    limitReachedTitle: "Daily Limit Reached",
+    limitReachedMessage:
+      "Free users can make 3 calculations per day. Upgrade to Pro for unlimited calculations!",
+    cancel: "Cancel",
+    goPro: "Go Pro",
+    calculationsRemaining: "calculations remaining today",
+    // History
+    deleteEntryTitle: "Delete Entry",
+    deleteEntryMessage: "Are you sure you want to delete this calculation?",
+    delete: "Delete",
+    clearHistoryTitle: "Clear All History",
+    clearHistoryMessage:
+      "This will delete all saved calculations. This action cannot be undone.\n\n⚠️ Note: If you delete the app, all history data will also be permanently removed.",
+    clearAll: "Clear All",
+    historyProTitle: "Pro Feature",
+    historyProMessage:
+      "Calculation history is available for Pro users. Upgrade to save and review your past calculations.",
+    historyDataWarning:
+      "History is stored locally. Deleting the app will remove all data.",
+    noHistory: "No calculations yet",
+    noHistoryMessage: "Your calculations will appear here automatically.",
+    selectRegion: "Region (Comunidad Autónoma)",
+    // Non-EU
+    tabEU: "Import to Spain (EU)",
+    tabNonEU: "Outside EU",
+    transportCost: "Transport Cost (€)",
+    duty: "Duty (10%)",
+    vat: "VAT (21%)",
+    customsAgent: "Customs Agent / DUA",
+    homologation: "Individual Homologation",
+    homologationInfo:
+      "Required for vehicles from outside the EU that lack a European Certificate of Conformity (COC).",
+    invoicePrice: "Invoice Price (€)",
+    privacyPolicy: "Privacy Policy",
+    termsOfService: "Terms of Service",
+    restorePurchases: "Restore Purchases",
   },
   es: {
     originCountry: "País de Origen",
@@ -70,12 +110,14 @@ export const translations = {
     yearOptional: "Año del vehículo (opcional)",
     co2: "Emisiones CO2 (g/km)",
     age: "Antigüedad",
+    isNew: "Condición totalmente nueva (0 km)",
+    isNewInfo: "Menos de 6000km y 6 meses de antigüedad",
     sellerType: "Tipo de Vendedor",
     dealer: "Concesionario",
     private: "Particular",
     calculate: "Calcular Coste Total",
     privateSaleWarning:
-      "⚠️ Las ventas entre particulares pueden estar sujetas a 4% de ITP.",
+      "⚠️ Las ventas entre particulares están sujetas al ITP (porcentaje según comunidad).",
     evDetected: "⚡ Vehículo eléctrico detectado - CO2 = 0",
     priceError: "Introduce un precio válido",
     co2Error: "Introduce las emisiones de CO2",
@@ -96,14 +138,13 @@ export const translations = {
     dgt: "Tasa DGT",
     itv: "Inspección ITV",
     plates: "Placas y Gestión",
-    totalImportCost: "Coste Total de Importación",
+    totalImportCost: "Impuestos y Tasas (España)",
+    grandTotal: "TOTAL",
     calculationDetails: "Detalles del Cálculo",
     depreciation: "Depreciación Aplicada:",
     taxBase: "Base Imponible:",
     taxRate: "Tipo Impositivo:",
     saveDownload: "Guardar y Descargar PDF",
-    watchAd: "📺 Mira un anuncio para descargar",
-    loadingAd: "(Cargando...)",
     pdfTitle: "Presupuesto de Importación",
     // Tooltips
     originCountryInfo:
@@ -118,7 +159,44 @@ export const translations = {
       "Las emisiones de CO2 determinan el tramo del impuesto de matriculación.",
     sellerTypeInfo:
       "Comprar a un Concesionario evita el ITP. Comprar a un Particular conlleva un 4% de ITP.",
-    fiscalInfo: "El valor oficial asignado por la Agencia Tributaria (BOE).",
+    fiscalInfo:
+      "El valor oficial del vehículo NUEVO según el BOE. Este es el precio de referencia antes de aplicar la depreciación por antigüedad.",
+    boeNewValue: "Valor BOE (Precio Nuevo)",
+    limitReachedTitle: "Límite diario alcanzado",
+    limitReachedMessage:
+      "Los usuarios gratuitos pueden hacer 3 cálculos por día. ¡Actualiza a Pro para cálculos ilimitados!",
+    cancel: "Cancelar",
+    goPro: "Hazte Pro",
+    calculationsRemaining: "cálculos restantes hoy",
+    deleteEntryTitle: "Eliminar entrada",
+    deleteEntryMessage: "¿Estás seguro de que deseas eliminar este cálculo?",
+    delete: "Eliminar",
+    clearHistoryTitle: "Borrar todo el historial",
+    clearHistoryMessage:
+      "Esto eliminará todos los cálculos guardados. Esta acción no se puede deshacer.\n\n⚠️ Nota: Si eliminas la app, todos los datos del historial también se borrarán permanentemente.",
+    clearAll: "Borrar todo",
+    historyProTitle: "Función Pro",
+    historyProMessage:
+      "El historial de cálculos está disponible para usuarios Pro. Actualiza para guardar y revisar tus cálculos.",
+    historyDataWarning:
+      "El historial se guarda localmente. Eliminar la app borrará todos los datos.",
+    noHistory: "Aún no hay cálculos",
+    noHistoryMessage: "Tus cálculos aparecerán aquí automáticamente.",
+    selectRegion: "Región (Comunidad Autónoma)",
+    // Non-EU
+    tabEU: "Importar a España (UE)",
+    tabNonEU: "Fuera de la UE",
+    transportCost: "Coste de Transporte (€)",
+    duty: "Arancel (10%)",
+    vat: "IVA (21%)",
+    customsAgent: "Agente de Aduanas / DUA",
+    homologation: "Homologación Individual",
+    homologationInfo:
+      "Necesaria para vehículos de fuera de la UE que no tienen Certificado de Conformidad Europeo (COC).",
+    invoicePrice: "Precio de Factura (€)",
+    privacyPolicy: "Política de Privacidad",
+    termsOfService: "Términos de Servicio",
+    restorePurchases: "Restaurar Compras",
   },
   ru: {
     originCountry: "Страна происхождения",
@@ -129,11 +207,14 @@ export const translations = {
     yearOptional: "Год выпуска (необязательно)",
     co2: "Выбросы CO2 (г/км)",
     age: "Возраст авто",
+    isNew: "Совершенно новый (0 км)",
+    isNewInfo: "Менее 6000 км пробега и до 6 месяцев",
     sellerType: "Тип продавца",
     dealer: "Дилер",
     private: "Частник",
     calculate: "Рассчитать стоимость",
-    privateSaleWarning: "⚠️ Частные продажи могут облагаться налогом 4% ITP.",
+    privateSaleWarning:
+      "⚠️ Частные продажи облагаются налогом ITP (ставка зависит от региона).",
     evDetected: "⚡ Электромобиль обнаружен - CO2 = 0",
     priceError: "Введите корректную цену",
     co2Error: "Введите выбросы CO2",
@@ -152,14 +233,13 @@ export const translations = {
     dgt: "Сбор DGT",
     itv: "Техосмотр ITV",
     plates: "Номера и оформление",
-    totalImportCost: "Общая стоимость импорта",
+    totalImportCost: "Налоги и сборы (Испания)",
+    grandTotal: "ИТОГО",
     calculationDetails: "Детали расчета",
     depreciation: "Амортизация:",
     taxBase: "Налоговая база:",
     taxRate: "Налоговая ставка:",
     saveDownload: "Сохранить и скачать PDF",
-    watchAd: "📺 Посмотрите рекламу для скачивания",
-    loadingAd: "(Загрузка...)",
     pdfTitle: "Смета импорта",
     // Tooltips
     originCountryInfo:
@@ -173,7 +253,43 @@ export const translations = {
     sellerTypeInfo:
       "Покупка у дилера освобождает от ITP. Покупка у частника облагается 4% ITP.",
     fiscalInfo:
-      "Официальная стоимость, установленная налоговой службой Испании (BOE).",
+      "Официальная стоимость НОВОГО автомобиля по данным BOE. Это базовая цена до применения амортизации по возрасту.",
+    boeNewValue: "Цена BOE (Новый авто)",
+    limitReachedTitle: "Дневной лимит достигнут",
+    limitReachedMessage:
+      "Бесплатные пользователи могут делать 3 расчёта в день. Обновитесь до Pro для безлимитных расчётов!",
+    cancel: "Отмена",
+    goPro: "Стать Pro",
+    calculationsRemaining: "расчётов осталось сегодня",
+    deleteEntryTitle: "Удалить запись",
+    deleteEntryMessage: "Вы уверены, что хотите удалить этот расчёт?",
+    delete: "Удалить",
+    clearHistoryTitle: "Очистить историю",
+    clearHistoryMessage:
+      "Все сохранённые расчёты будут удалены. Это действие нельзя отменить.\n\n⚠️ Примечание: При удалении приложения все данные истории будут безвозвратно потеряны.",
+    clearAll: "Очистить всё",
+    historyProTitle: "Функция Pro",
+    historyProMessage:
+      "История расчётов доступна для Pro-пользователей. Обновитесь, чтобы сохранять и просматривать расчёты.",
+    historyDataWarning:
+      "История хранится локально. При удалении приложения все данные будут потеряны.",
+    noHistory: "Расчётов пока нет",
+    noHistoryMessage: "Ваши расчёты будут появляться здесь автоматически.",
+    selectRegion: "Регион (автономное сообщество)",
+    // Non-EU
+    tabEU: "Импорт в Испанию (ЕС)",
+    tabNonEU: "Вне ЕС",
+    transportCost: "Стоимость транспорта (€)",
+    duty: "Пошлина (10%)",
+    vat: "НДС (21%)",
+    customsAgent: "Таможенный агент / DUA",
+    homologation: "Индивидуальная омологация",
+    homologationInfo:
+      "Необходима для автомобилей из-за пределов ЕС без европейского сертификата соответствия (COC).",
+    invoicePrice: "Цена по счету (€)",
+    privacyPolicy: "Политика конфиденциальности",
+    termsOfService: "Условия использования",
+    restorePurchases: "Восстановить покупки",
   },
   de: {
     originCountry: "Herkunftsland",
@@ -184,11 +300,14 @@ export const translations = {
     yearOptional: "Baujahr (optional)",
     co2: "CO2-Emissionen (g/km)",
     age: "Fahrzeugalter",
+    isNew: "Zustand ist komplett neu (0 km)",
+    isNewInfo: "Weniger als 6000 km und 6 Monate alt",
     sellerType: "Verkäufertyp",
     dealer: "Händler",
     private: "Privat",
     calculate: "Gesamtkosten berechnen",
-    privateSaleWarning: "⚠️ Bei Privatverkauf können 4% ITP anfallen.",
+    privateSaleWarning:
+      "⚠️ Bei Privatverkauf fällt ITP an (Satz je nach Region).",
     evDetected: "⚡ Elektrofahrzeug erkannt - CO2 = 0",
     priceError: "Gültigen Preis eingeben",
     co2Error: "CO2-Emissionen eingeben",
@@ -207,14 +326,13 @@ export const translations = {
     dgt: "DGT-Gebühr",
     itv: "ITV-Inspektion",
     plates: "Kennzeichen & Admin",
-    totalImportCost: "Gesamte Importkosten",
+    totalImportCost: "Steuern & Gebühren (Spanien)",
+    grandTotal: "GESAMT",
     calculationDetails: "Berechnungsdetails",
     depreciation: "Angewandte Abschreibung:",
     taxBase: "Steuerbasis:",
     taxRate: "Steuersatz:",
     saveDownload: "Speichern & PDF herunterladen",
-    watchAd: "📺 Werbung ansehen zum Herunterladen",
-    loadingAd: "(Lädt...)",
     pdfTitle: "Importkostenvoranschlag",
     // Tooltips
     originCountryInfo:
@@ -229,7 +347,43 @@ export const translations = {
     sellerTypeInfo:
       "Kauf vom Händler vermeidet ITP-Steuer. Kauf von Privatperson: 4% ITP.",
     fiscalInfo:
-      "Der von der spanischen Steuerbehörde (BOE) festgelegte offizielle Wert.",
+      "Der offizielle NEUWAGEN-Wert laut BOE. Dies ist der Referenzpreis vor Anwendung der Abschreibung nach Fahrzeugalter.",
+    boeNewValue: "BOE-Wert (Neupreis)",
+    limitReachedTitle: "Tageslimit erreicht",
+    limitReachedMessage:
+      "Gratisnutzer können 3 Berechnungen pro Tag durchführen. Upgrade auf Pro für unbegrenzte Berechnungen!",
+    cancel: "Abbrechen",
+    goPro: "Pro werden",
+    calculationsRemaining: "Berechnungen heute übrig",
+    deleteEntryTitle: "Eintrag löschen",
+    deleteEntryMessage: "Möchten Sie diese Berechnung wirklich löschen?",
+    delete: "Löschen",
+    clearHistoryTitle: "Gesamten Verlauf löschen",
+    clearHistoryMessage:
+      "Alle gespeicherten Berechnungen werden gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.\n\n⚠️ Hinweis: Wenn Sie die App löschen, gehen alle Verlaufsdaten ebenfalls dauerhaft verloren.",
+    clearAll: "Alles löschen",
+    historyProTitle: "Pro-Funktion",
+    historyProMessage:
+      "Der Berechnungsverlauf ist für Pro-Nutzer verfügbar. Upgraden Sie, um Ihre Berechnungen zu speichern und zu überprüfen.",
+    historyDataWarning:
+      "Der Verlauf wird lokal gespeichert. Das Löschen der App entfernt alle Daten.",
+    noHistory: "Noch keine Berechnungen",
+    noHistoryMessage: "Ihre Berechnungen erscheinen hier automatisch.",
+    selectRegion: "Region (Autonome Gemeinschaft)",
+    // Non-EU
+    tabEU: "Import nach Spanien (EU)",
+    tabNonEU: "Außerhalb der EU",
+    transportCost: "Transportkosten (€)",
+    duty: "Zoll (10%)",
+    vat: "MwSt (21%)",
+    customsAgent: "Zollagent / DUA",
+    homologation: "Einzelabnahme",
+    homologationInfo:
+      "Erforderlich für Fahrzeuge von außerhalb der EU ohne europäische Konformitätsbescheinigung (COC).",
+    invoicePrice: "Rechnungspreis (€)",
+    privacyPolicy: "Datenschutzrichtlinie",
+    termsOfService: "Nutzungsbedingungen",
+    restorePurchases: "Käufe wiederherstellen",
   },
   fr: {
     originCountry: "Pays d'origine",
@@ -240,12 +394,14 @@ export const translations = {
     yearOptional: "Année (optionnel)",
     co2: "Émissions CO2 (g/km)",
     age: "Âge du véhicule",
+    isNew: "État complètement neuf (0 km)",
+    isNewInfo: "Moins de 6000km et 6 mois de mise en circulation",
     sellerType: "Type de vendeur",
     dealer: "Concessionnaire",
     private: "Particulier",
     calculate: "Calculer le coût total",
     privateSaleWarning:
-      "⚠️ Les ventes privées peuvent encourir 4% de taxe ITP.",
+      "⚠️ Les ventes privées sont soumises à la taxe ITP (taux selon la région).",
     evDetected: "⚡ Véhicule électrique détecté - CO2 = 0",
     priceError: "Entrez un prix valide",
     co2Error: "Entrez les émissions de CO2",
@@ -264,14 +420,13 @@ export const translations = {
     dgt: "Frais DGT",
     itv: "Inspection ITV",
     plates: "Plaques et administration",
-    totalImportCost: "Coût total d'importation",
+    totalImportCost: "Taxes & frais (Espagne)",
+    grandTotal: "TOTAL",
     calculationDetails: "Détails du calcul",
     depreciation: "Dépréciation appliquée :",
     taxBase: "Base imposable :",
     taxRate: "Taux d'imposition :",
     saveDownload: "Enregistrer et télécharger le PDF",
-    watchAd: "📺 Regarder une pub pour télécharger",
-    loadingAd: "(Chargement...)",
     pdfTitle: "Devis d'importation",
     // Tooltips
     originCountryInfo:
@@ -287,6 +442,42 @@ export const translations = {
     sellerTypeInfo:
       "L'achat chez un concessionnaire évite la taxe ITP. L'achat à un particulier encourt 4% d'ITP.",
     fiscalInfo:
-      "La valeur officielle attribuée par l'administration fiscale espagnole (BOE).",
+      "La valeur officielle du véhicule NEUF selon le BOE. C'est le prix de référence avant application de la dépréciation selon l'âge du véhicule.",
+    boeNewValue: "Valeur BOE (Prix Neuf)",
+    limitReachedTitle: "Limite quotidienne atteinte",
+    limitReachedMessage:
+      "Les utilisateurs gratuits peuvent effectuer 3 calculs par jour. Passez à Pro pour des calculs illimités !",
+    cancel: "Annuler",
+    goPro: "Passer Pro",
+    calculationsRemaining: "calculs restants aujourd'hui",
+    deleteEntryTitle: "Supprimer l'entrée",
+    deleteEntryMessage: "Êtes-vous sûr de vouloir supprimer ce calcul ?",
+    delete: "Supprimer",
+    clearHistoryTitle: "Effacer tout l'historique",
+    clearHistoryMessage:
+      "Tous les calculs enregistrés seront supprimés. Cette action est irréversible.\n\n⚠️ Remarque : Si vous supprimez l'application, toutes les données d'historique seront définitivement perdues.",
+    clearAll: "Tout effacer",
+    historyProTitle: "Fonction Pro",
+    historyProMessage:
+      "L'historique des calculs est disponible pour les utilisateurs Pro. Passez à Pro pour enregistrer et consulter vos calculs.",
+    historyDataWarning:
+      "L'historique est stocké localement. Supprimer l'application effacera toutes les données.",
+    noHistory: "Aucun calcul pour le moment",
+    noHistoryMessage: "Vos calculs apparaîtront ici automatiquement.",
+    selectRegion: "Région (Communauté autonome)",
+    // Non-EU
+    tabEU: "Importer en Espagne (UE)",
+    tabNonEU: "Hors UE",
+    transportCost: "Coût de transport (€)",
+    duty: "Droits de douane (10%)",
+    vat: "TVA (21%)",
+    customsAgent: "Agent en douane / DUA",
+    homologation: "Homologation Individuelle",
+    homologationInfo:
+      "Requis pour les véhicules hors UE sans Certificat de Conformité Européen (COC).",
+    invoicePrice: "Prix de Facture (€)",
+    privacyPolicy: "Politique de Confidentialité",
+    termsOfService: "Conditions d'Utilisation",
+    restorePurchases: "Restaurer les achats",
   },
 };

@@ -1,0 +1,10 @@
+# Maestro configuration shared by every flow in this folder.
+# https://maestro.mobile.dev/api-reference/configuration
+
+# Bundle ID / package — picked up automatically by flows that omit `appId`.
+appId: com.gio-khimsho.ImportEspana
+
+# Tags filter so you can run a subset:
+#   maestro test .maestro --include-tags=smoke
+tags:
+  - regression

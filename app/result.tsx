@@ -1,319 +1,387 @@
-import { AdUnits } from "@/constants/Ads";
-import { Colors } from "@/constants/Colors";
+import {
+  Badge,
+  Caption,
+  Divider,
+  GlassCard,
+  HeroCard,
+  PrimaryButton,
+} from "@/components/ui";
+import { Fonts, Radius, Space } from "@/constants/Colors";
 import { useLanguage } from "@/context/LanguageContext";
-import { CalculationInput } from "@/types";
+import { useTheme } from "@/context/ThemeContext";
+import { CalculationInput, CalculationResult } from "@/types";
 import { calculateImportCost } from "@/utils/taxCalculator";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { Save } from "lucide-react-native";
-import React, { useEffect, useRef, useState } from "react";
+import { useLocalSearchParams } from "expo-router";
+import { BarChart3, Receipt, Save } from "lucide-react-native";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import {
   Alert,
   Animated,
-  Dimensions,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import {
-  AdEventType,
-  RewardedAd,
-  RewardedAdEventType,
-} from "react-native-google-mobile-ads";
-
-const screenWidth = Dimensions.get("window").width;
 
 export default function ResultScreen() {
-  const router = useRouter();
   const params = useLocalSearchParams();
   const { t } = useLanguage();
+  const { theme } = useTheme();
 
-  // Transform params back to typed input
-  const input: CalculationInput = {
-    originCountry: params.originCountry as any,
-    carPrice: parseFloat(params.carPrice as string),
-    officialFiscalValue: parseFloat(params.officialFiscalValue as string),
-    carAge: params.carAge as any,
-    co2Emissions: parseFloat(params.co2Emissions as string),
-    sellerType: params.sellerType as any,
-    itpRate: params.itpRate ? parseFloat(params.itpRate as string) : undefined,
-  };
+  const inputStr = JSON.stringify(params);
+  const input: CalculationInput = useMemo(
+    () => ({
+      originCountry: params.originCountry as any,
+      carPrice: parseFloat(params.carPrice as string),
+      officialFiscalValue: parseFloat(params.officialFiscalValue as string),
+      carAge: params.carAge as any,
+      registrationDate: (params.registrationDate as string) || undefined,
+      isNewCondition: params.isNewCondition === "true",
+      co2Emissions: parseFloat(params.co2Emissions as string),
+      sellerType: params.sellerType as any,
+      needsHomologation: params.needsHomologation === "true",
+      itpRate: params.itpRate ? parseFloat(params.itpRate as string) : undefined,
+      importType: params.importType as any,
+      customsAgentFee: params.customsAgentFee
+        ? parseFloat(params.customsAgentFee as string)
+        : undefined,
+      transportCost: params.transportCost
+        ? parseFloat(params.transportCost as string)
+        : undefined,
+      insuranceCost: params.insuranceCost
+        ? parseFloat(params.insuranceCost as string)
+        : undefined,
+      spanishRegion: (params.spanishRegion as string) || undefined,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [inputStr],
+  );
 
-  const result = calculateImportCost(input);
-
-  const [adLoaded, setAdLoaded] = useState(false);
-  const [rewardedAd, setRewardedAd] = useState<RewardedAd | null>(null);
-  const [adError, setAdError] = useState(false);
-  const rewardEarned = useRef(false);
+  const result = useMemo(() => calculateImportCost(input), [input]);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
 
-  // Entrance animation
+  const saveToHistory = useCallback(
+    async (i: CalculationInput, r: CalculationResult) => {
+      try {
+        const existing = await AsyncStorage.getItem("@import_history");
+        const history = existing ? JSON.parse(existing) : [];
+        history.unshift({
+          id: Date.now().toString(),
+          date: new Date().toISOString(),
+          input: {
+            originCountry: i.originCountry,
+            carPrice: i.carPrice,
+            officialFiscalValue: i.officialFiscalValue,
+            carAge: i.carAge,
+            co2Emissions: i.co2Emissions,
+            sellerType: i.sellerType,
+          },
+          result: {
+            totalCost: r.totalCost,
+            registrationTax: r.registrationTax,
+            itpTax: r.itpTax,
+            duty: r.duty,
+            vat: r.vat,
+            totalImportTaxes: r.totalImportTaxes,
+            taxRateApplied: r.taxRateApplied,
+            depreciationPercentage: r.depreciationPercentage,
+          },
+        });
+        if (history.length > 50) history.pop();
+        await AsyncStorage.setItem("@import_history", JSON.stringify(history));
+      } catch (e) {
+        console.error("Failed to save", e);
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 600,
+        duration: 500,
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 500,
+        duration: 450,
         useNativeDriver: true,
       }),
     ]).start();
+    saveToHistory(input, result);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Helper function to download PDF directly
-  const downloadPDF = async () => {
+  const downloadPDF = useCallback(async () => {
     try {
       const { generateAndSharePDF } = await import("@/utils/generatePdf");
       await generateAndSharePDF(input, result);
-      await saveToHistory(result);
       Alert.alert("Success!", t("saveDownload"));
-    } catch (error) {
-      console.error("PDF generation error:", error);
+    } catch (e) {
+      console.error("PDF generation error:", e);
       Alert.alert("Error", "Could not generate PDF. Please try again.");
     }
-  };
+  }, [input, result, t]);
 
-  useEffect(() => {
-    const ad = RewardedAd.createForAdRequest(AdUnits.REWARDED, {
-      requestNonPersonalizedAdsOnly: true,
-    });
-
-    const unsubscribeLoaded = ad.addAdEventListener(
-      RewardedAdEventType.LOADED,
-      () => {
-        setAdLoaded(true);
-        setAdError(false);
-      },
-    );
-
-    const unsubscribeError = ad.addAdEventListener(
-      AdEventType.ERROR,
-      (error) => {
-        console.log("Ad failed to load:", error);
-        setAdError(true);
-        setAdLoaded(false);
-      },
-    );
-
-    const unsubscribeEarned = ad.addAdEventListener(
-      RewardedAdEventType.EARNED_REWARD,
-      () => {
-        rewardEarned.current = true;
-      },
-    );
-
-    const unsubscribeClosed = ad.addAdEventListener(
-      AdEventType.CLOSED,
-      async () => {
-        setAdLoaded(false);
-        ad.load(); // Load next
-
-        if (rewardEarned.current) {
-          await downloadPDF();
-          rewardEarned.current = false;
-        }
-      },
-    );
-
-    ad.load();
-    setRewardedAd(ad);
-
-    return () => {
-      unsubscribeLoaded();
-      unsubscribeError();
-      unsubscribeEarned();
-      unsubscribeClosed();
-    };
-  }, []);
-
-  const saveToHistory = async (item: any) => {
-    try {
-      const existing = await AsyncStorage.getItem("@import_history");
-      const history = existing ? JSON.parse(existing) : [];
-      history.push({ ...item, date: new Date().toISOString() });
-      await AsyncStorage.setItem("@import_history", JSON.stringify(history));
-    } catch (e) {
-      console.error("Failed to save", e);
-    }
-  };
-
-  const handleSave = () => {
-    if (adLoaded && rewardedAd && !adError) {
-      rewardedAd.show();
-    } else if (adError) {
-      // Fallback if ad failed to load
-      downloadPDF();
-    } else {
-      Alert.alert(t("loadingAd"), "Please wait for ad.");
-    }
-  };
-
-  // Check if electric vehicle (CO2 = 0)
   const isElectric = input.co2Emissions === 0;
+  const grandTotal = result.totalCost;
+  const taxesAndFees = grandTotal - input.carPrice - result.transportCost;
+
+  const auditTone =
+    result.auditRisk === "high"
+      ? "warning"
+      : result.auditRisk === "medium"
+        ? "info"
+        : "success";
+
+  const formatCurrency = (n: number) =>
+    n.toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+
+  const animStyle = {
+    opacity: fadeAnim,
+    transform: [{ translateY: slideAnim }],
+  };
 
   return (
     <ScrollView
-      style={styles.container}
-      contentContainerStyle={{ paddingBottom: 40 }}
+      style={{ flex: 1 }}
+      contentContainerStyle={{ padding: Space.md, paddingBottom: 40 }}
     >
-      {/* Gradient Header with Total */}
-      <LinearGradient
-        colors={[Colors.primary, "#0055CC"]}
-        style={styles.header}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
-        <Animated.View
-          style={{
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-            alignItems: "center",
-          }}
-        >
-          <Text style={styles.headerLabel}>{t("estimatedTotal")}</Text>
-          <Text style={styles.totalAmount}>
-            {result.totalCost.toLocaleString("de-DE", {
-              style: "currency",
-              currency: "EUR",
-            })}
+      {/* ── Hero card with total ─────────────────────────────────── */}
+      <Animated.View style={animStyle}>
+        <HeroCard style={{ marginBottom: Space.md }}>
+          <Caption style={{ color: "rgba(255,255,255,0.78)" }}>
+            {t("estimatedTotal")}
+          </Caption>
+          <Text
+            testID="result-total"
+            style={{
+              color: "#fff",
+              fontFamily: Fonts.monoBold,
+              fontSize: 44,
+              letterSpacing: -1.4,
+              marginTop: 6,
+              marginBottom: 6,
+            }}
+          >
+            {formatCurrency(grandTotal)}
           </Text>
-          <Text style={styles.subDetail}>{t("includes")}</Text>
+          <Text
+            style={{
+              color: "rgba(255,255,255,0.78)",
+              fontFamily: Fonts.sansRegular,
+              fontSize: 13,
+            }}
+          >
+            {t("includes")}
+          </Text>
           {isElectric && (
-            <View style={styles.evBadge}>
-              <Text style={styles.evBadgeText}>{t("evDetected")}</Text>
+            <View style={{ marginTop: 12 }}>
+              <Badge tone="success">{t("evDetected")}</Badge>
             </View>
           )}
-        </Animated.View>
-      </LinearGradient>
+        </HeroCard>
+      </Animated.View>
 
-      {/* Breakdown Card */}
-      <Animated.View
-        style={[
-          styles.card,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          },
-        ]}
-      >
-        <Text style={styles.cardTitle}>💶 {t("breakdown")}</Text>
+      {/* ── Breakdown ────────────────────────────────────────────── */}
+      <Animated.View style={animStyle}>
+        <GlassCard style={{ marginBottom: Space.md }}>
+          <View style={styles.cardTitleRow}>
+            <Receipt size={18} color={theme.brandBlueLight} />
+            <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
+              {t("breakdown")}
+            </Text>
+          </View>
 
-        <Row label={t("carPrice")} value={input.carPrice} color={Colors.text} />
-        <Row
-          label="Transport" // TODO: Translate if needed or keep generic
-          value={result.transportCost}
-          color={Colors.text}
-        />
+          <Row label={t("carPrice")} value={input.carPrice} />
+          <Row label={t("transportCost")} value={result.transportCost} />
+          {input.insuranceCost ? (
+            <Row label="Marine cargo insurance" value={input.insuranceCost} />
+          ) : null}
+          {(result.duty ?? 0) > 0 && (
+            <Row label={t("duty")} value={result.duty ?? 0} />
+          )}
+          {(result.vat ?? 0) > 0 && (
+            <Row label={t("vat")} value={result.vat ?? 0} />
+          )}
 
-        <View style={styles.divider} />
-        <Text style={styles.sectionTitle}>{t("taxesFees")}</Text>
+          <Divider />
+          <Caption style={{ marginBottom: 10 }}>{t("taxesFees")}</Caption>
 
-        <Row
-          label={t("registrationTax")}
-          value={result.registrationTax}
-          color={Colors.secondary}
-          bold
-        />
-        {result.itpTax > 0 && (
           <Row
-            label={t("itp")}
-            value={result.itpTax}
-            color={Colors.secondary}
+            label={t("registrationTax")}
+            value={result.registrationTax}
+            highlight
           />
-        )}
+          {result.itpTax > 0 && (
+            <Row label={t("itp")} value={result.itpTax} highlight />
+          )}
+          <Row label={t("dgt")} value={result.dgtFee} />
+          <Row label={t("itv")} value={result.itvFee} />
+          <Row label={t("plates")} value={result.platesFee} />
+          {result.customsAgentFee ? (
+            <Row label={t("customsAgent")} value={result.customsAgentFee} />
+          ) : null}
+          {result.homologationFee ? (
+            <Row label={t("homologation")} value={result.homologationFee} />
+          ) : null}
 
-        <Row label={t("dgt")} value={result.dgtFee} color={Colors.text} />
-        <Row label={t("itv")} value={result.itvFee} color={Colors.text} />
-        <Row label={t("plates")} value={result.platesFee} color={Colors.text} />
+          <Divider />
+          <View style={styles.row}>
+            <Text
+              style={{
+                color: theme.textSecondary,
+                fontFamily: Fonts.sansMedium,
+                fontSize: 14,
+                flex: 1,
+              }}
+            >
+              {t("totalImportCost")}
+            </Text>
+            <Text
+              style={{
+                color: theme.textPrimary,
+                fontFamily: Fonts.monoMedium,
+                fontSize: 14,
+              }}
+            >
+              {formatCurrency(taxesAndFees)}
+            </Text>
+          </View>
 
-        <View style={styles.divider} />
-        <View style={styles.row}>
-          <Text style={styles.labelBold}>{t("totalImportCost")}</Text>
-          <Text
-            style={[
-              styles.value,
-              { color: Colors.primary, fontSize: 18, fontWeight: "bold" },
-            ]}
-          >
-            {(result.totalCost - input.carPrice).toLocaleString("de-DE", {
-              style: "currency",
-              currency: "EUR",
-            })}
-          </Text>
-        </View>
+          <Divider />
+          <View style={styles.row}>
+            <Text
+              style={{
+                color: theme.textPrimary,
+                fontFamily: Fonts.sansBold,
+                fontSize: 16,
+                letterSpacing: 0.4,
+                flex: 1,
+              }}
+            >
+              {t("grandTotal")}
+            </Text>
+            <Text
+              style={{
+                color: theme.brandBlueLight,
+                fontFamily: Fonts.monoBold,
+                fontSize: 20,
+                letterSpacing: -0.5,
+              }}
+            >
+              {formatCurrency(grandTotal)}
+            </Text>
+          </View>
+        </GlassCard>
       </Animated.View>
 
-      {/* Stats Card */}
-      <Animated.View
-        style={[
-          styles.card,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          },
-        ]}
-      >
-        <Text style={styles.cardTitle}>📊 {t("calculationDetails")}</Text>
-        <View style={styles.statRow}>
-          <Text style={styles.statLabel}>{t("depreciation")}</Text>
-          <Text style={styles.statValue}>
-            {((1 - result.depreciationPercentage) * 100).toFixed(0)}%
-          </Text>
-        </View>
-        <View style={styles.statRow}>
-          <Text style={styles.statLabel}>{t("taxBase")}</Text>
-          <Text style={styles.statValue}>{result.taxBase.toFixed(0)}€</Text>
-        </View>
-        <View style={styles.statRow}>
-          <Text style={styles.statLabel}>{t("taxRate")}</Text>
-          <Text style={styles.statValue}>
-            {(result.taxRateApplied * 100).toFixed(2)}% (CO2:{" "}
-            {input.co2Emissions}g/km)
-          </Text>
-        </View>
+      {/* ── Calculation details ──────────────────────────────────── */}
+      <Animated.View style={animStyle}>
+        <GlassCard style={{ marginBottom: Space.md }}>
+          <View style={styles.cardTitleRow}>
+            <BarChart3 size={18} color={theme.brandBlueLight} />
+            <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
+              {t("calculationDetails")}
+            </Text>
+          </View>
+
+          <StatRow
+            label={t("depreciation")}
+            value={`${((1 - result.depreciationPercentage) * 100).toFixed(0)}%`}
+          />
+          <StatRow
+            label={t("taxBase")}
+            value={`€${result.taxBase.toLocaleString("de-DE", {
+              maximumFractionDigits: 0,
+            })}`}
+          />
+          <StatRow
+            label={t("taxRate")}
+            value={`${(result.taxRateApplied * 100).toFixed(2)}% · CO₂ ${input.co2Emissions}g/km`}
+          />
+          {input.spanishRegion ? (
+            <StatRow label="Region" value={input.spanishRegion} />
+          ) : null}
+          {result.itpRateApplied > 0 ? (
+            <StatRow
+              label="ITP rate"
+              value={`${(result.itpRateApplied * 100).toFixed(2)}%`}
+            />
+          ) : null}
+        </GlassCard>
       </Animated.View>
 
-      {/* Action Button */}
-      <Animated.View
-        style={[
-          styles.actionContainer,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          },
-        ]}
-      >
-        <Pressable
-          style={({ pressed }) => [
-            styles.saveButton,
-            pressed && { transform: [{ scale: 0.97 }] },
-          ]}
-          onPress={handleSave}
-        >
-          <LinearGradient
-            colors={[Colors.secondary, "#FFD700"]}
-            style={styles.saveButtonGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <Save color="#000" size={20} />
-            <Text style={styles.saveButtonText}>{t("saveDownload")}</Text>
-            {!adLoaded && (
-              <Text style={{ fontSize: 10, color: "#444" }}>
-                {t("loadingAd")}
+      {/* ── Audit risk (only meaningful for EU when market value > 0) ── */}
+      {input.importType !== "NonEU" && result.marketValue > 0 && (
+        <Animated.View style={animStyle}>
+          <GlassCard style={{ marginBottom: Space.md }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                marginBottom: 10,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontFamily: Fonts.sansBold,
+                  color: theme.textPrimary,
+                  flex: 1,
+                }}
+              >
+                Hacienda audit risk
               </Text>
-            )}
-          </LinearGradient>
-        </Pressable>
-        <Text style={styles.adHint}>{t("watchAd")}</Text>
+              <Badge tone={auditTone}>{result.auditRisk.toUpperCase()}</Badge>
+            </View>
+            <Text
+              style={{
+                color: theme.textSecondary,
+                fontFamily: Fonts.sansRegular,
+                fontSize: 13,
+                lineHeight: 19,
+              }}
+            >
+              Declared price is{" "}
+              <Text
+                style={{
+                  color: theme.textPrimary,
+                  fontFamily: Fonts.monoBold,
+                }}
+              >
+                {(result.auditRiskRatio * 100).toFixed(0)}%
+              </Text>{" "}
+              of estimated market value (€
+              {result.marketValue.toLocaleString("de-DE", {
+                maximumFractionDigits: 0,
+              })}
+              ). Hacienda may issue a complementary settlement if the gap is too
+              large.
+            </Text>
+          </GlassCard>
+        </Animated.View>
+      )}
+
+      {/* ── Action ───────────────────────────────────────────────── */}
+      <Animated.View style={[animStyle, { alignItems: "stretch" }]}>
+        <PrimaryButton
+          onPress={downloadPDF}
+          full
+          icon={<Save size={16} color="#fff" />}
+        >
+          {t("saveDownload")}
+        </PrimaryButton>
       </Animated.View>
     </ScrollView>
   );
@@ -322,21 +390,31 @@ export default function ResultScreen() {
 function Row({
   label,
   value,
-  color,
-  bold,
+  highlight,
 }: {
   label: string;
   value: number;
-  color: string;
-  bold?: boolean;
+  highlight?: boolean;
 }) {
+  const { theme } = useTheme();
   return (
     <View style={styles.row}>
-      <Text style={[styles.label, { fontWeight: bold ? "bold" : "400" }]}>
+      <Text
+        style={{
+          color: theme.textSecondary,
+          fontFamily: Fonts.sansRegular,
+          fontSize: 14,
+          flex: 1,
+        }}
+      >
         {label}
       </Text>
       <Text
-        style={[styles.value, { color, fontWeight: bold ? "bold" : "400" }]}
+        style={{
+          color: highlight ? theme.brandGoldLight : theme.textPrimary,
+          fontFamily: Fonts.monoMedium,
+          fontSize: 14,
+        }}
       >
         {value.toLocaleString("de-DE", { style: "currency", currency: "EUR" })}
       </Text>
@@ -344,120 +422,67 @@ function Row({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F5F7FA" },
-  header: {
-    padding: 35,
-    alignItems: "center",
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  headerLabel: {
-    color: "rgba(255,255,255,0.85)",
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 1.5,
-    marginBottom: 8,
-  },
-  totalAmount: {
-    color: Colors.white,
-    fontSize: 48,
-    fontWeight: "900",
-    marginVertical: 8,
-    textShadowColor: "rgba(0,0,0,0.2)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-  },
-  subDetail: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 13,
-    textAlign: "center",
-  },
-  evBadge: {
-    marginTop: 12,
-    backgroundColor: "#10B981",
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  evBadgeText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "700",
-  },
+function StatRow({ label, value }: { label: string; value: string }) {
+  const { theme } = useTheme();
+  return (
+    <View
+      style={[
+        styles.statRow,
+        {
+          backgroundColor: theme.surfaceDim,
+          borderColor: theme.glassBorder,
+        },
+      ]}
+    >
+      <Text
+        style={{
+          color: theme.textSecondary,
+          fontFamily: Fonts.sansMedium,
+          fontSize: 13,
+          flex: 1,
+        }}
+      >
+        {label}
+      </Text>
+      <Text
+        style={{
+          color: theme.textPrimary,
+          fontFamily: Fonts.monoBold,
+          fontSize: 13,
+        }}
+      >
+        {value}
+      </Text>
+    </View>
+  );
+}
 
-  card: {
-    backgroundColor: Colors.white,
-    marginHorizontal: 20,
-    marginBottom: 18,
-    borderRadius: 20,
-    padding: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-  },
+const styles = StyleSheet.create({
   cardTitle: {
-    fontSize: 19,
-    fontWeight: "800",
-    marginBottom: 18,
-    color: Colors.text,
+    fontSize: 18,
+    fontFamily: Fonts.sansBold,
+    letterSpacing: -0.3,
   },
-  sectionTitle: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#9CA3AF",
-    marginBottom: 10,
-    marginTop: 6,
-    letterSpacing: 0.5,
+  cardTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: Space.md,
   },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 14,
     alignItems: "center",
+    marginBottom: 10,
   },
-  label: { fontSize: 15, color: "#4B5563", flex: 1 },
-  labelBold: { fontSize: 17, fontWeight: "700", color: Colors.text, flex: 1 },
-  value: { fontSize: 15, fontWeight: "600" },
-  divider: { height: 1, backgroundColor: "#E5E7EB", marginVertical: 14 },
-
   statRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: "#F9FAFB",
-    borderRadius: 10,
-  },
-  statLabel: { fontSize: 14, color: "#6B7280", flex: 1 },
-  statValue: { fontSize: 14, fontWeight: "700", color: Colors.text },
-
-  actionContainer: { alignItems: "center", marginTop: 12, marginBottom: 20 },
-  saveButton: {
-    borderRadius: 30,
-    overflow: "hidden",
-    shadowColor: Colors.secondary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  saveButtonGradient: {
-    flexDirection: "row",
-    paddingHorizontal: 28,
-    paddingVertical: 16,
     alignItems: "center",
-    gap: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    marginBottom: 8,
   },
-  saveButtonText: { fontWeight: "800", color: "#000", fontSize: 16 },
-  adHint: { marginTop: 10, color: "#9CA3AF", fontSize: 13 },
 });
