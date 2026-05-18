@@ -289,6 +289,7 @@ export default function InputScreen() {
     fuelType?: string;
     isManual: boolean;
     year?: number;
+    co2?: number | null;
   }) => {
     setFiscalValue(data.value.toString());
     setTouched((p) => ({ ...p, fiscalValue: true }));
@@ -298,6 +299,10 @@ export default function InputScreen() {
       setTouched((p) => ({ ...p, co2: true }));
     } else {
       setIsElectric(false);
+      if (typeof data.co2 === "number" && data.co2 > 0) {
+        setCo2(data.co2.toString());
+        setTouched((p) => ({ ...p, co2: true }));
+      }
     }
     if (data.year) setRegistrationDate(`${data.year}-01`);
   };
