@@ -1,8 +1,8 @@
+import { Fonts } from "@/constants/Colors";
 import { useTheme } from "@/context/ThemeContext";
 import { useRouter } from "expo-router";
-import { ClipboardList } from "lucide-react-native";
 import React from "react";
-import { TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity } from "react-native";
 
 export function HistoryButton() {
   const router = useRouter();
@@ -14,16 +14,21 @@ export function HistoryButton() {
       onPress={() => router.push("/history")}
       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       style={{
-        width: 36,
         height: 36,
-        borderRadius: 18,
+        paddingHorizontal: 4,
         alignItems: "center",
         justifyContent: "center",
       }}
     >
-      <View pointerEvents="none">
-        <ClipboardList size={20} color={theme.textPrimary} />
-      </View>
+      <Text
+        style={{
+          color: theme.textPrimary,
+          fontFamily: Fonts.sansMedium,
+          fontSize: 14,
+        }}
+      >
+        History
+      </Text>
     </TouchableOpacity>
   );
 }

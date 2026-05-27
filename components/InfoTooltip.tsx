@@ -1,7 +1,7 @@
+import { Fonts } from "@/constants/Colors";
 import { useTheme } from "@/context/ThemeContext";
-import { Info } from "lucide-react-native";
 import React from "react";
-import { Alert, Pressable } from "react-native";
+import { Alert, Pressable, Text, View } from "react-native";
 
 interface InfoTooltipProps {
   text: string;
@@ -22,7 +22,28 @@ export function InfoTooltip({ text, title = "Info" }: InfoTooltipProps) {
       ]}
       hitSlop={12}
     >
-      <Info size={16} color={theme.textTertiary} />
+      <View
+        style={{
+          width: 18,
+          height: 18,
+          borderRadius: 9,
+          borderWidth: 1,
+          borderColor: theme.textTertiary,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Text
+          style={{
+            color: theme.textTertiary,
+            fontFamily: Fonts.sansBold,
+            fontSize: 11,
+            lineHeight: 13,
+          }}
+        >
+          ?
+        </Text>
+      </View>
     </Pressable>
   );
 }

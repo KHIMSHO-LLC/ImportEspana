@@ -27,18 +27,9 @@ import { Country, ImportType } from "@/types";
 import { getDepreciationFactor } from "@/utils/taxCalculator";
 import { Stack, useRouter } from "expo-router";
 import {
-  AlertCircle,
-  CalendarDays,
   CheckSquare,
-  Coins,
-  Euro,
-  Gauge,
-  MapPin,
   RotateCcw,
-  Shield,
-  Ship,
   Square,
-  User,
 } from "lucide-react-native";
 import React, { useCallback, useMemo, useState } from "react";
 import {
@@ -317,8 +308,6 @@ export default function InputScreen() {
   const nonEuCountries: Country[] = ["USA", "UAE", "Japan", "Korea"];
   const visibleCountries = importType === "EU" ? euCountries : nonEuCountries;
 
-  const iconColor = theme.brandBlue;
-
   return (
     <View style={{ flex: 1 }}>
       <Stack.Screen options={{ headerLeft: () => <HistoryButton /> }} />
@@ -390,7 +379,6 @@ export default function InputScreen() {
           {/* ── Origin Country ─────────────────────────────────────── */}
           <GlassCard style={styles.section}>
             <Label
-              icon={<MapPin size={16} color={iconColor} />}
               trailing={<InfoTooltip text={t("originCountryInfo")} />}
             >
               {t("originCountry")}
@@ -411,7 +399,7 @@ export default function InputScreen() {
 
           {/* ── Region (always visible — affects IEDMT brackets too) ─ */}
           <GlassCard style={styles.section}>
-            <Label icon={<MapPin size={16} color={iconColor} />}>
+            <Label>
               {t("selectRegion") || "Spanish Region"}
             </Label>
             <Text
@@ -450,7 +438,6 @@ export default function InputScreen() {
           {/* ── Price ──────────────────────────────────────────────── */}
           <GlassCard style={styles.section}>
             <Label
-              icon={<Euro size={16} color={iconColor} />}
               trailing={<InfoTooltip text={t("carPriceInfo")} />}
             >
               {importType === "NonEU" ? t("invoicePrice") : t("carPrice")}
@@ -470,7 +457,7 @@ export default function InputScreen() {
           {/* ── Non-EU: Transport / Insurance / Homologation ───────── */}
           {importType === "NonEU" && (
             <GlassCard style={styles.section}>
-              <Label icon={<Ship size={16} color={iconColor} />}>
+              <Label>
                 {t("transportCost")}
               </Label>
               <Input
@@ -488,7 +475,7 @@ export default function InputScreen() {
 
               <View style={{ height: Space.md }} />
 
-              <Label icon={<Shield size={16} color={iconColor} />}>
+              <Label>
                 Marine cargo insurance (€)
               </Label>
               <Input
@@ -557,7 +544,6 @@ export default function InputScreen() {
           {/* ── CO2 ────────────────────────────────────────────────── */}
           <GlassCard style={styles.section}>
             <Label
-              icon={<Gauge size={16} color={iconColor} />}
               trailing={<InfoTooltip text={t("co2Info")} />}
             >
               {t("co2")}
@@ -585,7 +571,6 @@ export default function InputScreen() {
           {/* ── First Registration / Condition ─────────────────────── */}
           <GlassCard style={styles.section}>
             <Label
-              icon={<CalendarDays size={16} color={iconColor} />}
               trailing={<InfoTooltip text={t("ageInfo")} />}
             >
               {t("age") || "First Registration (Month/Year)"}
@@ -644,7 +629,6 @@ export default function InputScreen() {
           {(fiscalValue || isNewCondition) && !errors.fiscalValue && (
             <GlassCard style={styles.section}>
               <View style={styles.valuationHeader}>
-                <Coins size={16} color={iconColor} />
                 <Text
                   style={{
                     color: theme.textPrimary,
@@ -730,7 +714,6 @@ export default function InputScreen() {
           {importType === "EU" && !isNewCondition && (
             <GlassCard style={styles.section}>
               <Label
-                icon={<User size={16} color={iconColor} />}
                 trailing={<InfoTooltip text={t("sellerTypeInfo")} />}
               >
                 {t("sellerType")}
@@ -811,9 +794,6 @@ export default function InputScreen() {
                 marginBottom: 8,
               }}
             >
-              {hasReachedLimit && (
-                <AlertCircle size={14} color={theme.error} />
-              )}
               <Text
                 style={{
                   textAlign: "center",
@@ -903,25 +883,16 @@ function ValuationRow({
 function ErrorText({ text }: { text: string }) {
   const { theme } = useTheme();
   return (
-    <View
+    <Text
       style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 6,
+        color: theme.error,
+        fontSize: 12,
+        fontFamily: Fonts.sansMedium,
         marginTop: 6,
       }}
     >
-      <AlertCircle size={14} color={theme.error} />
-      <Text
-        style={{
-          color: theme.error,
-          fontSize: 12,
-          fontFamily: Fonts.sansMedium,
-        }}
-      >
-        {text}
-      </Text>
-    </View>
+      {text}
+    </Text>
   );
 }
 

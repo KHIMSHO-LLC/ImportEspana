@@ -19,8 +19,8 @@ export const translations = {
     calculate: "Calculate Total Cost",
     // Hints & Errors
     privateSaleWarning:
-      "⚠️ Private sales incur ITP tax (rate varies by region).",
-    evDetected: "⚡ Electric Vehicle Detected - CO2 = 0",
+      "Private sales incur ITP tax (rate varies by region).",
+    evDetected: "Electric Vehicle Detected - CO2 = 0",
     priceError: "Enter a valid price",
     co2Error: "Enter CO2 emissions",
     fiscalError: "Select vehicle or enter fiscal value",
@@ -76,7 +76,7 @@ export const translations = {
     delete: "Delete",
     clearHistoryTitle: "Clear All History",
     clearHistoryMessage:
-      "This will delete all saved calculations. This action cannot be undone.\n\n⚠️ Note: If you delete the app, all history data will also be permanently removed.",
+      "This will delete all saved calculations. This action cannot be undone.\n\nNote: If you delete the app, all history data will also be permanently removed.",
     clearAll: "Clear All",
     historyProTitle: "Pro Feature",
     historyProMessage:
@@ -117,8 +117,8 @@ export const translations = {
     private: "Particular",
     calculate: "Calcular Coste Total",
     privateSaleWarning:
-      "⚠️ Las ventas entre particulares están sujetas al ITP (porcentaje según comunidad).",
-    evDetected: "⚡ Vehículo eléctrico detectado - CO2 = 0",
+      "Las ventas entre particulares están sujetas al ITP (porcentaje según comunidad).",
+    evDetected: "Vehículo eléctrico detectado - CO2 = 0",
     priceError: "Introduce un precio válido",
     co2Error: "Introduce las emisiones de CO2",
     fiscalError: "Selecciona vehículo o introduce valor fiscal",
@@ -173,7 +173,7 @@ export const translations = {
     delete: "Eliminar",
     clearHistoryTitle: "Borrar todo el historial",
     clearHistoryMessage:
-      "Esto eliminará todos los cálculos guardados. Esta acción no se puede deshacer.\n\n⚠️ Nota: Si eliminas la app, todos los datos del historial también se borrarán permanentemente.",
+      "Esto eliminará todos los cálculos guardados. Esta acción no se puede deshacer.\n\nNota: Si eliminas la app, todos los datos del historial también se borrarán permanentemente.",
     clearAll: "Borrar todo",
     historyProTitle: "Función Pro",
     historyProMessage:
@@ -214,8 +214,8 @@ export const translations = {
     private: "Частник",
     calculate: "Рассчитать стоимость",
     privateSaleWarning:
-      "⚠️ Частные продажи облагаются налогом ITP (ставка зависит от региона).",
-    evDetected: "⚡ Электромобиль обнаружен - CO2 = 0",
+      "Частные продажи облагаются налогом ITP (ставка зависит от региона).",
+    evDetected: "Электромобиль обнаружен - CO2 = 0",
     priceError: "Введите корректную цену",
     co2Error: "Введите выбросы CO2",
     fiscalError: "Выберите авто или введите налоговую стоимость",
@@ -266,7 +266,7 @@ export const translations = {
     delete: "Удалить",
     clearHistoryTitle: "Очистить историю",
     clearHistoryMessage:
-      "Все сохранённые расчёты будут удалены. Это действие нельзя отменить.\n\n⚠️ Примечание: При удалении приложения все данные истории будут безвозвратно потеряны.",
+      "Все сохранённые расчёты будут удалены. Это действие нельзя отменить.\n\nПримечание: При удалении приложения все данные истории будут безвозвратно потеряны.",
     clearAll: "Очистить всё",
     historyProTitle: "Функция Pro",
     historyProMessage:
@@ -307,8 +307,8 @@ export const translations = {
     private: "Privat",
     calculate: "Gesamtkosten berechnen",
     privateSaleWarning:
-      "⚠️ Bei Privatverkauf fällt ITP an (Satz je nach Region).",
-    evDetected: "⚡ Elektrofahrzeug erkannt - CO2 = 0",
+      "Bei Privatverkauf fällt ITP an (Satz je nach Region).",
+    evDetected: "Elektrofahrzeug erkannt - CO2 = 0",
     priceError: "Gültigen Preis eingeben",
     co2Error: "CO2-Emissionen eingeben",
     fiscalError: "Fahrzeug wählen oder Steuerwert eingeben",
@@ -360,7 +360,7 @@ export const translations = {
     delete: "Löschen",
     clearHistoryTitle: "Gesamten Verlauf löschen",
     clearHistoryMessage:
-      "Alle gespeicherten Berechnungen werden gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.\n\n⚠️ Hinweis: Wenn Sie die App löschen, gehen alle Verlaufsdaten ebenfalls dauerhaft verloren.",
+      "Alle gespeicherten Berechnungen werden gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.\n\nHinweis: Wenn Sie die App löschen, gehen alle Verlaufsdaten ebenfalls dauerhaft verloren.",
     clearAll: "Alles löschen",
     historyProTitle: "Pro-Funktion",
     historyProMessage:
@@ -401,8 +401,8 @@ export const translations = {
     private: "Particulier",
     calculate: "Calculer le coût total",
     privateSaleWarning:
-      "⚠️ Les ventes privées sont soumises à la taxe ITP (taux selon la région).",
-    evDetected: "⚡ Véhicule électrique détecté - CO2 = 0",
+      "Les ventes privées sont soumises à la taxe ITP (taux selon la région).",
+    evDetected: "Véhicule électrique détecté - CO2 = 0",
     priceError: "Entrez un prix valide",
     co2Error: "Entrez les émissions de CO2",
     fiscalError: "Sélectionnez un véhicule ou entrez la valeur fiscale",
@@ -455,7 +455,7 @@ export const translations = {
     delete: "Supprimer",
     clearHistoryTitle: "Effacer tout l'historique",
     clearHistoryMessage:
-      "Tous les calculs enregistrés seront supprimés. Cette action est irréversible.\n\n⚠️ Remarque : Si vous supprimez l'application, toutes les données d'historique seront définitivement perdues.",
+      "Tous les calculs enregistrés seront supprimés. Cette action est irréversible.\n\nRemarque : Si vous supprimez l'application, toutes les données d'historique seront définitivement perdues.",
     clearAll: "Tout effacer",
     historyProTitle: "Fonction Pro",
     historyProMessage:

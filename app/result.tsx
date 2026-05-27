@@ -13,7 +13,6 @@ import { CalculationInput, CalculationResult } from "@/types";
 import { calculateImportCost } from "@/utils/taxCalculator";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams } from "expo-router";
-import { BarChart3, Receipt, Save } from "lucide-react-native";
 import React, {
   useCallback,
   useEffect,
@@ -196,7 +195,6 @@ export default function ResultScreen() {
       <Animated.View style={animStyle}>
         <GlassCard style={{ marginBottom: Space.md }}>
           <View style={styles.cardTitleRow}>
-            <Receipt size={18} color={theme.brandBlueLight} />
             <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
               {t("breakdown")}
             </Text>
@@ -289,7 +287,6 @@ export default function ResultScreen() {
       <Animated.View style={animStyle}>
         <GlassCard style={{ marginBottom: Space.md }}>
           <View style={styles.cardTitleRow}>
-            <BarChart3 size={18} color={theme.brandBlueLight} />
             <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
               {t("calculationDetails")}
             </Text>
@@ -375,11 +372,7 @@ export default function ResultScreen() {
 
       {/* ── Action ───────────────────────────────────────────────── */}
       <Animated.View style={[animStyle, { alignItems: "stretch" }]}>
-        <PrimaryButton
-          onPress={downloadPDF}
-          full
-          icon={<Save size={16} color="#fff" />}
-        >
+        <PrimaryButton onPress={downloadPDF} full>
           {t("saveDownload")}
         </PrimaryButton>
       </Animated.View>

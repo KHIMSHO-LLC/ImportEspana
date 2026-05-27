@@ -20,7 +20,6 @@ import { useFonts } from "expo-font";
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { Crown } from "lucide-react-native";
 import React, { useEffect } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -32,19 +31,16 @@ function ProButton() {
   const router = useRouter();
 
   const inner = (
-    <>
-      <Crown size={14} color="#0A0F1E" />
-      <Text
-        style={{
-          fontFamily: Fonts.sansBold,
-          color: "#0A0F1E",
-          fontSize: 11,
-          letterSpacing: 0.4,
-        }}
-      >
-        {isPro ? "PRO ✓" : "PRO"}
-      </Text>
-    </>
+    <Text
+      style={{
+        fontFamily: Fonts.sansBold,
+        color: "#0A0F1E",
+        fontSize: 11,
+        letterSpacing: 0.4,
+      }}
+    >
+      {isPro ? "PRO ✓" : "PRO"}
+    </Text>
   );
 
   const baseStyle = {

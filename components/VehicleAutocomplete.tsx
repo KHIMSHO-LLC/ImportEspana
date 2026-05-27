@@ -2,14 +2,6 @@ import { Badge, Input, Label } from "@/components/ui";
 import { Fonts, Radius, Space } from "@/constants/Colors";
 import { useLanguage } from "@/context/LanguageContext";
 import { useTheme } from "@/context/ThemeContext";
-import {
-  Calendar,
-  Car,
-  CheckCircle2,
-  Coins,
-  Wrench,
-  Zap,
-} from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
   Keyboard,
@@ -172,7 +164,7 @@ export function VehicleAutocomplete({
   if (isManualMode) {
     return (
       <View>
-        <Label icon={<Coins size={16} color={theme.brandBlue} />}>
+        <Label>
           {t("manualEntryLabel")}
         </Label>
         <Text
@@ -242,10 +234,7 @@ export function VehicleAutocomplete({
     <View>
       {/* Brand */}
       <View style={{ zIndex: 10, marginBottom: Space.md }}>
-        <Label
-          icon={<Car size={16} color={theme.brandBlue} />}
-          trailing={<InfoTooltip text={t("vehicleSearchInfo")} />}
-        >
+        <Label trailing={<InfoTooltip text={t("vehicleSearchInfo")} />}>
           {t("brand")}
         </Label>
         <Input
@@ -293,10 +282,7 @@ export function VehicleAutocomplete({
       {/* Year */}
       {selectedBrand && (
         <View style={{ marginBottom: Space.md }}>
-          <Label
-            icon={<Calendar size={16} color={theme.brandBlue} />}
-            trailing={<InfoTooltip text={t("yearInfo")} />}
-          >
+          <Label trailing={<InfoTooltip text={t("yearInfo")} />}>
             {t("yearOptional")}
           </Label>
           <Input
@@ -312,10 +298,7 @@ export function VehicleAutocomplete({
       {/* Model */}
       {selectedBrand && (
         <View style={{ zIndex: 5, marginBottom: Space.md }}>
-          <Label
-            icon={<Wrench size={16} color={theme.brandBlue} />}
-            trailing={<InfoTooltip text={t("vehicleSearchInfo")} />}
-          >
+          <Label trailing={<InfoTooltip text={t("vehicleSearchInfo")} />}>
             {t("model")}
           </Label>
           <Input
@@ -370,10 +353,10 @@ export function VehicleAutocomplete({
                         {v.cv}cv · {v.startYear}
                         {v.endYear ? `-${v.endYear}` : "+"} · €
                         {v.value.toLocaleString("de-DE")}
+                        {v.fuelType === "Elc" && (
+                          <Text style={{ color: theme.success }}> · EV</Text>
+                        )}
                       </Text>
-                      {v.fuelType === "Elc" && (
-                        <Zap size={12} color={theme.success} />
-                      )}
                     </View>
                   </Pressable>
                 ))}
@@ -394,22 +377,17 @@ export function VehicleAutocomplete({
             },
           ]}
         >
-          <View
-            style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+          <Text
+            style={{
+              color: theme.brandBlueLight,
+              fontSize: 12,
+              fontFamily: Fonts.sansSemibold,
+              letterSpacing: 0.6,
+              textTransform: "uppercase",
+            }}
           >
-            <CheckCircle2 size={14} color={theme.brandBlueLight} />
-            <Text
-              style={{
-                color: theme.brandBlueLight,
-                fontSize: 12,
-                fontFamily: Fonts.sansSemibold,
-                letterSpacing: 0.6,
-                textTransform: "uppercase",
-              }}
-            >
-              {t("vehicleSearch")}
-            </Text>
-          </View>
+            {t("vehicleSearch")}
+          </Text>
           <Text
             style={{
               color: theme.textPrimary,

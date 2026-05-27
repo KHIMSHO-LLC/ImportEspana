@@ -5,14 +5,7 @@ import { useRevenueCat } from "@/context/RevenueCatContext";
 import { useTheme } from "@/context/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import {
-  AlertTriangle,
-  ClipboardList,
-  Clock,
-  Lock,
-  MapPin,
-  Trash2,
-} from "lucide-react-native";
+import { Trash2 } from "lucide-react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
@@ -162,25 +155,16 @@ export default function HistoryScreen() {
             >
               {formatCurrency(item.result.totalCost)}
             </Text>
-            <View
+            <Text
               style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 6,
+                color: theme.textTertiary,
+                fontFamily: Fonts.sansMedium,
+                fontSize: 12,
                 marginTop: 4,
               }}
             >
-              <Clock size={12} color={theme.textTertiary} />
-              <Text
-                style={{
-                  color: theme.textTertiary,
-                  fontFamily: Fonts.sansMedium,
-                  fontSize: 12,
-                }}
-              >
-                {formatDate(item.date)}
-              </Text>
-            </View>
+              {formatDate(item.date)}
+            </Text>
           </View>
           <Pressable
             onPress={() => deleteEntry(item.id)}
@@ -195,25 +179,16 @@ export default function HistoryScreen() {
 
         <DetailRow
           label={
-            <View
+            <Text
               style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 6,
+                color: theme.textSecondary,
+                fontSize: 13,
+                fontFamily: Fonts.sansMedium,
                 flex: 1,
               }}
             >
-              <MapPin size={12} color={theme.textTertiary} />
-              <Text
-                style={{
-                  color: theme.textSecondary,
-                  fontSize: 13,
-                  fontFamily: Fonts.sansMedium,
-                }}
-              >
-                {item.input.originCountry}
-              </Text>
-            </View>
+              {item.input.originCountry}
+            </Text>
           }
           value={formatCurrency(item.input.carPrice)}
         />
@@ -261,7 +236,6 @@ export default function HistoryScreen() {
           { backgroundColor: theme.background },
         ]}
       >
-        <Lock size={56} color={theme.brandGoldLight} style={{ marginBottom: 16 }} />
         <Text
           style={{
             fontFamily: Fonts.sansExtraBold,
@@ -304,31 +278,21 @@ export default function HistoryScreen() {
           },
         ]}
       >
-        <View
+        <Text
           style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 6,
+            color: theme.warning,
+            fontSize: 12,
+            fontFamily: Fonts.sansMedium,
+            textAlign: "center",
           }}
         >
-          <AlertTriangle size={12} color={theme.warning} />
-          <Text
-            style={{
-              color: theme.warning,
-              fontSize: 12,
-              fontFamily: Fonts.sansMedium,
-            }}
-          >
-            {t("historyDataWarning") ||
-              "History is stored locally. Deleting the app will remove all data."}
-          </Text>
-        </View>
+          {t("historyDataWarning") ||
+            "History is stored locally. Deleting the app will remove all data."}
+        </Text>
       </View>
 
       {history.length === 0 ? (
         <View style={styles.empty}>
-          <ClipboardList size={48} color={theme.textTertiary} style={{ marginBottom: 16 }} />
           <Caption style={{ marginBottom: 6 }}>
             {t("noHistory") || "No calculations yet"}
           </Caption>
